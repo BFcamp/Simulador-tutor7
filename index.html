@@ -1730,20 +1730,22 @@
             });
         }
         
-        // --- CORRECCIÓN: Función toggleAccordion robusta ---
+        // --- CORRECCIÓN: Función toggleAccordion simplificada y robusta ---
         function toggleAccordion(e) {
             const btn = e.currentTarget;
             const content = btn.nextElementSibling;
+            if (!content) {
+                console.error("Error: no se encontró .accordion-content después del botón.");
+                return; 
+            }
+            
             const isExpanded = btn.getAttribute('aria-expanded') === 'true';
-            btn.setAttribute('aria-expanded', !isExpanded);
+            btn.setAttribute('aria-expanded', String(!isExpanded));
             content.classList.toggle('open');
             
-            // CORRECCIÓN: Ser más robusto con el ícono
-            // Busca el span original O el svg renderizado por lucide
-            const icon = btn.querySelector('.toggle-icon') || btn.querySelector('.lucide-chevron-down') || btn.querySelector('.lucide-chevron-up');
-            if (icon) {
-                icon.style.transform = isExpanded ? 'rotate(0deg)' : 'rotate(180deg)';
-            }
+            // La rotación del ícono se maneja 100% por CSS
+            // (Ver el estilo .accordion-btn[aria-expanded="true"] .toggle-icon)
+            // Y el estilo .accordion-btn[aria-expanded="true"] .lucide-chevron-down
         }
         
         function updateTopicManagerControls() {
