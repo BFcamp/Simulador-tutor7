@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulador Tutor IA - V8 (Corregido)</title>
+    <title>Simulador Tutor IA - V9 (Global)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -121,12 +121,14 @@
             <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-2">Simulador Tutor IA</h1>
             <p class="text-lg text-gray-600">Entrenamiento inteligente: Oral, Choice y Repaso Espaciado.</p>
             
-            <!-- Selector de Materia (AHORA OCULTO por defecto, se muestra por JS) -->
-            <div id="subject-header" class="mt-6 border-t border-gray-200 pt-4" style="display: none;">
+            <!-- Selector de Materia -->
+            <div id="subject-header" class="mt-6 border-t border-gray-200 pt-4">
                 <label class="block text-base font-semibold text-gray-800 mb-2">Materia Actual:</label>
                 <div class="flex flex-col sm:flex-row sm:space-x-2">
                     <select id="subject-selector" class="w-full sm:w-1/2 p-2.5 border border-gray-300 rounded-lg bg-white">
-                        <option value="">-- Cargar Materia --</option>
+                        <option value="">-- Seleccionar --</option>
+                        <!-- NUEVA OPCIÓN "Ver Todas" -->
+                        <option value="all">-- Ver Todas --</option>
                     </select>
                     <input type="text" id="new-subject-name" placeholder="Nueva materia..." class="mt-2 sm:mt-0 w-full sm:w-1/2 p-2.5 border border-gray-300 rounded-lg">
                     <button id="add-subject-btn" class="mt-2 sm:mt-0 px-5 py-2.5 bg-gray-800 text-white font-semibold rounded-lg hover:bg-gray-900">Crear</button>
@@ -140,42 +142,20 @@
         <!-- Navegación Tabs -->
         <div class="mb-6 overflow-x-auto">
             <nav class="flex space-x-6 border-b border-gray-300 min-w-max" aria-label="Tabs">
-                <!-- NUEVA Pestaña "Resumen de Hoy" -->
-                <button id="tab-summary-btn" class="tab-button active py-4 text-lg font-semibold text-gray-500">Resumen de Hoy</button>
-                <button id="tab-material-btn" class="tab-button py-4 text-lg font-semibold text-gray-500">Material</button>
+                <!-- Pestaña "Resumen" ELIMINADA -->
+                <button id="tab-material-btn" class="tab-button active py-4 text-lg font-semibold text-gray-500">Material</button>
                 <button id="tab-choice-btn" class="tab-button py-4 text-lg font-semibold text-gray-500">Modo Choice</button>
                 <button id="tab-simulador-btn" class="tab-button py-4 text-lg font-semibold text-gray-500">Modo Oral</button>
-                <button id="tab-review-btn" class="tab-button py-4 text-lg font-semibold text-gray-500">Repasar (Materia)</button>
-                <button id="tab-topics-btn" class="tab-button py-4 text-lg font-semibold text-gray-500">Administrar Temas</button> <!-- RENOMBRADA -->
+                <button id="tab-review-btn" class="tab-button py-4 text-lg font-semibold text-gray-500">Repasar</button> <!-- Texto cambiado -->
+                <button id="tab-topics-btn" class="tab-button py-4 text-lg font-semibold text-gray-500">Administrar Temas</button>
                 <button id="tab-roadmap-btn" class="tab-button py-4 text-lg font-semibold text-gray-500">Hoja de Ruta</button>
             </nav>
         </div>
 
         <div class="bg-white shadow-xl rounded-xl p-6 sm:p-8 min-h-[500px]">
             
-            <!-- TAB: RESUMEN DE HOY (NUEVA) -->
-            <div id="tab-summary" class="tab-panel active space-y-6">
-                <h2 class="text-3xl font-bold text-gray-800 mb-4">Resumen de Hoy</h2>
-                <div id="summary-loader" class="text-center">
-                    <div class="loader"></div>
-                    <p class="text-gray-500">Consultando todas tus materias...</p>
-                </div>
-                
-                <div id="summary-global-overdue" class="overdue-disclaimer" style="display: none;"></div>
-
-                <div id="summary-due-today" class="space-y-4">
-                    <h3 class="text-2xl font-semibold text-gray-700 border-b pb-2">Vencidas para Hoy</h3>
-                    <div id="summary-due-list" class="space-y-2"></div>
-                </div>
-
-                <div id="summary-next-week" class_name="space-y-4 mt-8">
-                    <h3 class="text-2xl font-semibold text-gray-700 border-b pb-2">Próximos 7 Días</h3>
-                    <div id="summary-week-list" class="space-y-2"></div>
-                </div>
-            </div>
-
-            <!-- TAB: MATERIAL -->
-            <div id="tab-material" class="tab-panel space-y-6">
+            <!-- TAB: MATERIAL (Ahora es la pestaña activa por defecto) -->
+            <div id="tab-material" class="tab-panel active space-y-6">
                 <p class="text-gray-600">Carga aquí la base de conocimiento para la IA. Es fundamental para que clasifique preguntas y detecte temas.</p>
                 <!-- Syllabus -->
                 <div>
@@ -279,23 +259,24 @@
                 </div>
             </div>
 
-            <!-- TAB: REPASAR (MATERIA) -->
+            <!-- TAB: REPASAR (MATERIA O GLOBAL) -->
             <div id="tab-review" class="tab-panel space-y-6">
                 <div class="flex justify-between items-center bg-blue-50 p-4 rounded-lg border border-blue-100">
                     <div>
-                        <h2 class="text-lg font-bold text-blue-900">Repaso por Materia (SRS)</h2>
-                        <p class="text-sm text-blue-700">Tarjetas de "Modo Oral" y flashcards de errores de "Modo Choice" para esta materia.</p>
+                        <h2 id="review-title" class="text-lg font-bold text-blue-900">Repaso (SRS)</h2>
+                        <p id="review-subtitle" class="text-sm text-blue-700">Tarjetas de "Modo Oral" y flashcards de errores de "Modo Choice".</p>
                     </div>
                     <div class="text-right">
                         <span id="review-count" class="text-3xl font-extrabold text-blue-600">0</span>
                         <span class="text-xs block text-gray-500">pendientes</span>
                     </div>
                 </div>
-                <!-- Disclaimer de Vencidas (por materia) -->
+                <!-- Disclaimer de Vencidas -->
                 <div id="review-overdue" class="overdue-disclaimer" style="display: none;"></div>
                 
+                <div id="review-loader" class="loader hidden"></div>
                 <div id="review-list" class="space-y-4 min-h-[200px]">
-                    <p class="text-gray-400 text-center py-10">¡Todo al día! No hay tarjetas para repasar hoy.</p>
+                    <p class="text-gray-400 text-center py-10">Selecciona una materia (o "Ver Todas") para ver tus repasos.</p>
                 </div>
             </div>
 
@@ -309,19 +290,19 @@
                     <button id="create-subtopic-btn" class="px-4 py-2 bg-green-600 text-white font-semibold rounded-lg text-sm disabled:opacity-50" disabled>Crear Subtema</button>
                 </div>
 
-                <div id="topic-manager-loader" class="text-center">
+                <div id="topic-manager-loader" class="text-center hidden">
                     <div class="loader"></div>
                     <p class="text-gray-500">Cargando todos los temas...</p>
                 </div>
                 <div id="topic-manager-list" class="space-y-2"></div>
             </div>
 
-            <!-- TAB: HOJA de RUTA -->
+            <!-- TAB: HOJA de RUTA (MATERIA O GLOBAL) -->
             <div id="tab-roadmap" class="tab-panel space-y-6">
-                <h2 class="text-2xl font-bold text-gray-800">Hoja de Ruta (Materia)</h2>
-                <p class="text-gray-600">Cronograma de tus próximos repasos (Orales y Flashcards) para la materia actual.</p>
+                <h2 id="roadmap-title" class="text-2xl font-bold text-gray-800">Hoja de Ruta</h2>
+                <p id="roadmap-subtitle" class="text-gray-600">Cronograma de tus próximos repasos (Orales y Flashcards).</p>
                 
-                <div id="roadmap-loader" class="loader"></div>
+                <div id="roadmap-loader" class="loader hidden"></div>
                 <div id="roadmap-list" class="space-y-6"></div>
                 <!-- Contenedor para la sesión de práctica de Hoja de Ruta -->
                 <div id="roadmap-practice-session" class="hidden"></div>
@@ -339,12 +320,12 @@
         </div>
     </div>
 
-    <!-- Modal Edición de Flashcard (NUEVO) -->
+    <!-- Modal Edición de Flashcard -->
     <div id="edit-qa-modal" class="fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center p-4 z-50">
         <div class="bg-white p-6 rounded-lg max-w-lg w-full shadow-2xl">
             <h3 class="text-xl font-bold text-gray-800 mb-4">Editar Flashcard</h3>
             <input type="hidden" id="edit-qa-id">
-            <input type="hidden" id="edit-qa-subject"> <!-- CORRECCIÓN: Para saber qué materia editar -->
+            <input type="hidden" id="edit-qa-subject">
             <div class="space-y-3">
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Pregunta</label>
@@ -380,7 +361,7 @@
 
         // --- CONFIGURACIÓN FIREBASE ---
         const firebaseConfig = {
-             apiKey: "AIzaSyAVbIeEAHBfKU5eDqsELTyXkAcM-m5qUUM", // Reemplaza si es necesario
+             apiKey: "AIzaSyAVbIeEAHBfKU5eDqsELTyXkAcM-m5qUUM",
              authDomain: "simulador-examen-oral.firebaseapp.com",
              projectId: "simulador-examen-oral",
              storageBucket: "simulador-examen-oral.firebasestorage.app",
@@ -394,36 +375,32 @@
         
         // --- ESTADO GLOBAL ---
         let userId = localStorage.getItem('my_sync_userId');
-        let currentSubject = null;
-        let currentTab = 'tab-summary'; // NUEVO: Iniciar en el resumen
+        let currentSubject = null; // Materia seleccionada
+        let allSubjectNames = []; // Array de nombres de materias
+        let currentTab = 'tab-material'; // Iniciar en Material
         let unsubscribeReview = null;
         let unsubscribeRoadmap = null;
         
         // Estado para Modo Choice
         let cachedMcqs = []; 
         let currentPracticeTopic = null;
-        let allPracticeTopicNames = []; // NUEVO: Para "Siguiente Tema"
+        let allPracticeTopicNames = []; 
         let currentPracticeQuestions = [];
         let currentQuestionIndex = 0;
-        let currentQuizCorrect = 0; // NUEVO: Para puntaje
-        let currentQuizWrong = 0; // NUEVO: Para puntaje
-        let currentQuizWrongCards = []; // NUEVO: Para repasar errores
+        let currentQuizCorrect = 0;
+        let currentQuizWrong = 0;
+        let currentQuizWrongCards = [];
         let isFlashcardCreated = false;
 
         // --- ELEMENTOS DOM ---
         const els = {
             tabs: document.querySelectorAll('.tab-button'),
             panels: document.querySelectorAll('.tab-panel'),
-            subjectHeader: document.getElementById('subject-header'), // NUEVO
+            subjectHeader: document.getElementById('subject-header'),
             subjectSelect: document.getElementById('subject-selector'),
             newSubjectInput: document.getElementById('new-subject-name'),
             addSubjectBtn: document.getElementById('add-subject-btn'),
             pdfInput: document.getElementById('hidden-pdf-input'),
-            // Resumen
-            summaryLoader: document.getElementById('summary-loader'),
-            summaryDueList: document.getElementById('summary-due-list'),
-            summaryWeekList: document.getElementById('summary-week-list'),
-            summaryGlobalOverdue: document.getElementById('summary-global-overdue'),
             // Choice
             choiceRaw: document.getElementById('choice-raw'),
             analyzeBtn: document.getElementById('analyze-choice-btn'),
@@ -439,7 +416,10 @@
             examContainer: document.getElementById('exam-container'),
             syllabusBrowser: document.getElementById('syllabus-browser'),
             // Review
-            reviewOverdue: document.getElementById('review-overdue'), // NUEVO
+            reviewTitle: document.getElementById('review-title'),
+            reviewSubtitle: document.getElementById('review-subtitle'),
+            reviewOverdue: document.getElementById('review-overdue'),
+            reviewLoader: document.getElementById('review-loader'),
             reviewList: document.getElementById('review-list'),
             reviewCount: document.getElementById('review-count'),
             // Admin Temas
@@ -448,6 +428,8 @@
             mergeTopicsBtn: document.getElementById('merge-topics-btn'),
             createSubtopicBtn: document.getElementById('create-subtopic-btn'),
             // Roadmap
+            roadmapTitle: document.getElementById('roadmap-title'),
+            roadmapSubtitle: document.getElementById('roadmap-subtitle'),
             roadmapLoader: document.getElementById('roadmap-loader'),
             roadmapList: document.getElementById('roadmap-list'),
             roadmapPractice: document.getElementById('roadmap-practice-session'),
@@ -464,8 +446,9 @@
                     } else {
                         document.getElementById('user-id').textContent = userId;
                         document.getElementById('sync-id-display').style.display = 'block';
-                        await loadSubjects(); // CORRECCIÓN: Manejar error aquí
-                        switchTab(currentTab); // Cargar la pestaña inicial (Resumen)
+                        await loadSubjects(); 
+                        els.subjectHeader.style.display = 'block'; // Mostrar selector
+                        switchTab(currentTab); // Cargar la pestaña inicial (Material)
                         if (typeof lucide !== 'undefined') lucide.createIcons();
                     }
                 }
@@ -536,29 +519,22 @@
             document.getElementById(tabId + '-btn').classList.add('active');
             document.getElementById(tabId).classList.add('active');
             
-            // NUEVA Lógica para mostrar/ocultar selector de materia
-            if (tabId === 'summary') {
-                els.subjectHeader.style.display = 'none';
-                loadGlobalSummary(); // Cargar resumen global
-            } else {
-                els.subjectHeader.style.display = 'block';
-                // Cargar datos específicos de la materia si está seleccionada
-                if (currentSubject) {
-                    if (tabId === 'choice') loadChoiceTopics();
-                    if (tabId === 'topics') loadTopicManager();
-                    if (tabId === 'review') setupReviewListener();
-                    if (tabId === 'roadmap') setupRoadmapListener();
-                }
-            }
+            // Cargar datos de la pestaña activa
+            // (La lógica de "Todas" vs "Materia" está en changeSubject)
+            loadDataForCurrentTab();
         }
 
         async function loadSubjects() {
-            // --- CORRECCIÓN DE BUG ---
             try {
                 const ref = collection(db, 'artifacts', firebaseConfig.projectId, 'users', userId, 'subjects');
                 const snap = await getDocs(ref);
-                els.subjectSelect.innerHTML = '<option value="">-- Seleccionar --</option>';
+                els.subjectSelect.innerHTML = `
+                    <option value="">-- Seleccionar --</option>
+                    <option value="all">-- Ver Todas --</option>
+                `;
+                allSubjectNames = []; // Resetear
                 snap.forEach(d => {
+                    allSubjectNames.push(d.id); // Guardar nombres
                     const opt = document.createElement('option');
                     opt.value = d.id; opt.textContent = d.id;
                     els.subjectSelect.appendChild(opt);
@@ -568,7 +544,6 @@
                 showError("Error al cargar materias. Revisa los permisos de Firestore.");
                 els.subjectHeader.innerHTML = '<p class="text-red-500">Error al cargar materias.</p>';
             }
-            // --- FIN CORRECCIÓN ---
         }
 
         async function createSubject() {
@@ -587,33 +562,56 @@
 
         function changeSubject() {
             currentSubject = els.subjectSelect.value;
+            
             // Limpiar listeners y UI de la materia anterior
             if (unsubscribeReview) unsubscribeReview();
             if (unsubscribeRoadmap) unsubscribeRoadmap();
             
-            // Limpiar todas las pestañas específicas de materia
+            // Limpiar todas las pestañas
+            clearAllTabs();
+
+            // Cargar datos basados en la nueva selección
+            loadDataForCurrentTab();
+        }
+        
+        // --- CORRECCIÓN DE BUG: Lógica de carga centralizada ---
+        function loadDataForCurrentTab() {
+            const subject = currentSubject; // 'all', 'materia', ''
+            
+            // Pestañas que SÓLO funcionan con una materia seleccionada
+            if (subject && subject !== 'all') {
+                if (currentTab === 'material') loadMaterialFields();
+                if (currentTab === 'choice') loadChoiceTopics();
+                if (currentTab === 'simulador') { /* No necesita carga */ }
+                if (currentTab === 'topics') loadTopicManager();
+            }
+            
+            // Pestañas que funcionan con "Todas" O una materia
+            if (subject) { // (No cargar si subject es '')
+                if (currentTab === 'review') loadReviewData(subject);
+                if (currentTab === 'roadmap') loadRoadmapData(subject);
+            }
+        }
+        
+        function clearAllTabs() {
             els.choiceList.innerHTML = '<p class="text-gray-400 italic">Selecciona una materia.</p>';
             els.practiceArea.innerHTML = '<p class="text-gray-400">Selecciona un tema.</p>';
             els.syllabusBrowser.innerHTML = '<p class="text-gray-400">Selecciona una materia.</p>';
-            els.reviewList.innerHTML = '<p class="text-gray-400">Selecciona una materia.</p>';
-            els.roadmapList.innerHTML = '<p class="text-gray-400">Selecciona una materia.</p>';
-            els.topicManagerList.innerHTML = '<p class="text-gray-400">Selecciona una materia.</p>';
-
-            if (!currentSubject) {
-                loadMaterialFields(true); // Limpiar campos de material
-                return;
-            }
+            els.reviewList.innerHTML = '<p class="text-gray-400 text-center py-10">Selecciona una materia (o "Ver Todas").</p>';
+            els.roadmapList.innerHTML = '<p class="text-gray-400 text-center py-10">Selecciona una materia (o "Ver Todas").</p>';
+            els.topicManagerList.innerHTML = '<p class="text-gray-400 text-center py-10">Selecciona una materia.</p>';
             
-            // Cargar datos de la nueva materia
-            loadMaterialFields();
+            // Limpiar títulos
+            els.reviewTitle.textContent = "Repaso (SRS)";
+            els.reviewSubtitle.textContent = "Selecciona una materia o 'Ver Todas'.";
+            els.roadmapTitle.textContent = "Hoja de Ruta";
+            els.roadmapSubtitle.textContent = "Selecciona una materia o 'Ver Todas'.";
             
-            // Cargar datos de la pestaña activa (switchTab se llama desde el else de summary)
-            if (currentTab !== 'summary') {
-                if (currentTab === 'choice') loadChoiceTopics();
-                if (currentTab === 'topics') loadTopicManager();
-                if (currentTab === 'review') setupReviewListener();
-                if (currentTab === 'roadmap') setupRoadmapListener();
-            }
+            // Ocultar loaders y disclaimers
+            els.reviewLoader.classList.add('hidden');
+            els.reviewOverdue.style.display = 'none';
+            els.roadmapLoader.classList.add('hidden');
+            els.topicManagerLoader.classList.add('hidden');
         }
 
         // --- LÓGICA MATERIAL (PDF & SAVE) ---
@@ -645,7 +643,7 @@
         }
 
         async function saveMaterial() {
-            if (!currentSubject) return showError("Selecciona una materia.");
+            if (!currentSubject || currentSubject === 'all') return showError("Selecciona una materia específica para guardar.");
             const data = {
                 syllabus: document.getElementById('syllabus').value,
                 theory: document.getElementById('theory').value,
@@ -667,9 +665,7 @@
                 });
                 return;
             }
-            
-            if (!currentSubject) return;
-
+            if (!currentSubject || currentSubject === 'all') return;
             for(const key of ['syllabus', 'theory', 'experiences']) {
                 try {
                     const d = await getDoc(doc(db, 'artifacts', firebaseConfig.projectId, 'users', userId, 'subjects', currentSubject, 'materials', key));
@@ -679,7 +675,6 @@
                     document.getElementById(key).value = '';
                 }
             }
-            // Limpiar el textarea de choice-raw, ya que es temporal
             document.getElementById('choice-raw').value = '';
         }
         
@@ -692,142 +687,124 @@
             return chunks;
         }
         
-        // --- NUEVA PESTAÑA: "RESUMEN DE HOY" ---
-        
-        async function loadGlobalSummary() {
-            els.summaryLoader.style.display = 'block';
-            els.summaryDueList.innerHTML = '';
-            els.summaryWeekList.innerHTML = '';
-            els.summaryGlobalOverdue.style.display = 'none';
-            
-            let allSubjects = [];
-            els.subjectSelect.querySelectorAll('option').forEach(opt => {
-                if (opt.value) allSubjects.push(opt.value);
-            });
+        // --- LÓGICA DE REPASO (GLOBAL O POR MATERIA) ---
 
-            if (allSubjects.length === 0) {
-                els.summaryLoader.style.display = 'none';
-                els.summaryDueList.innerHTML = '<p class="text-gray-500">Aún no has creado ninguna materia.</p>';
-                return;
+        async function loadReviewData(subject) {
+            els.reviewLoader.classList.remove('hidden');
+            els.reviewList.innerHTML = '';
+            els.reviewOverdue.style.display = 'none';
+
+            if (subject === 'all') {
+                els.reviewTitle.textContent = "Repaso Global (Todas las Materias)";
+                els.reviewSubtitle.textContent = "Tarjetas vencidas de todas tus materias.";
+            } else {
+                els.reviewTitle.textContent = `Repaso (SRS) - ${subject}`;
+                els.reviewSubtitle.textContent = "Tarjetas de Oral y Choice para esta materia.";
             }
 
             const now = new Date();
             const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            const nextWeek = new Date(today);
-            nextWeek.setDate(today.getDate() + 7);
+            let allDueCards = [];
 
-            let globalDueCards = [];
-            let globalFutureCards = [];
-
-            // --- CORRECCIÓN DE BUG ---
-            for (const subject of allSubjects) {
-                try { // Añadir try...catch DENTRO del loop
+            try {
+                const subjectsToQuery = (subject === 'all') ? allSubjectNames : [subject];
+                for (const subj of subjectsToQuery) {
                     const q = query(
-                        collection(db, 'artifacts', firebaseConfig.projectId, 'users', userId, 'subjects', subject, 'saved_questions'),
-                        where('nextReviewDate', '<', nextWeek)
+                        collection(db, 'artifacts', firebaseConfig.projectId, 'users', userId, 'subjects', subj, 'saved_questions'),
+                        where('nextReviewDate', '<=', now)
                     );
                     const snap = await getDocs(q);
                     snap.forEach(d => {
-                        const card = { id: d.id, subject: subject, ...d.data() };
-                        const cardDate = card.nextReviewDate.toDate();
-                        if (cardDate <= today) {
-                            globalDueCards.push(card);
-                        } else {
-                            globalFutureCards.push(card);
-                        }
+                        allDueCards.push({ id: d.id, subject: subj, ...d.data() });
                     });
-                } catch (error) {
-                    console.error(`Error al cargar repasos para la materia "${subject}":`, error);
-                    // Si una materia falla, simplemente la saltamos y continuamos
                 }
-            }
-            // --- FIN CORRECCIÓN ---
+                
+                els.reviewLoader.classList.add('hidden');
+                els.reviewCount.textContent = allDueCards.length;
 
-            els.summaryLoader.style.display = 'none';
-            
-            // Renderizar Vencidas Hoy
-            renderGlobalSection(globalDueCards, els.summaryDueList, 'hoy');
-            
-            // Renderizar Próxima Semana
-            renderGlobalSection(globalFutureCards, els.summaryWeekList, 'futuro');
-            
-            // Renderizar Disclaimer Global
-            const overdueCount = globalDueCards.filter(c => c.nextReviewDate.toDate() < today).length;
-            if (overdueCount > 0) {
-                els.summaryGlobalOverdue.textContent = `[!] ¡Atención! Tienes ${overdueCount} tarjetas vencidas de días anteriores. Se mostrarán primero.`;
-                els.summaryGlobalOverdue.style.display = 'block';
+                // Disclaimer de Vencidas
+                const overdueCount = allDueCards.filter(c => c.nextReviewDate.toDate() < today).length;
+                if (overdueCount > 0) {
+                    els.reviewOverdue.textContent = `[!] ¡Atención! Tienes ${overdueCount} tarjetas vencidas de días anteriores. Se mostrarán primero.`;
+                    els.reviewOverdue.style.display = 'block';
+                }
+                
+                // Renderizar
+                renderReviewCards(allDueCards, subject === 'all');
+
+            } catch (error) {
+                console.error("Error cargando repasos:", error);
+                els.reviewLoader.classList.add('hidden');
+                els.reviewList.innerHTML = '<p class="text-red-500">Error al cargar repasos. Revisa la consola.</p>';
             }
         }
 
-        function renderGlobalSection(cards, container, type) {
-            if (cards.length === 0) {
-                container.innerHTML = `<p class="text-gray-500">${type === 'hoy' ? '¡Todo al día!' : 'No hay repasos programados.'}</p>`;
-                return;
+        // --- LÓGICA DE HOJA DE RUTA (GLOBAL O POR MATERIA) ---
+
+        async function loadRoadmapData(subject) {
+            els.roadmapLoader.classList.remove('hidden');
+            els.roadmapList.innerHTML = '';
+            els.roadmapPractice.innerHTML = '';
+            els.roadmapPractice.style.display = 'none';
+
+            if (subject === 'all') {
+                els.roadmapTitle.textContent = "Hoja de Ruta Global";
+                els.roadmapSubtitle.textContent = "Próximos repasos de todas tus materias.";
+            } else {
+                els.roadmapTitle.textContent = `Hoja de Ruta - ${subject}`;
+                els.roadmapSubtitle.textContent = "Próximos repasos para esta materia.";
             }
 
-            // Agrupar por materia
-            const groupedBySubject = cards.reduce((acc, card) => {
-                if (!acc[card.subject]) acc[card.subject] = [];
-                acc[card.subject].push(card);
-                return acc;
-            }, {});
-
-            container.innerHTML = ''; // Limpiar
-            for (const subjectName in groupedBySubject) {
-                const subjectCards = groupedBySubject[subjectName];
-                const btn = document.createElement('button');
-                btn.className = 'accordion-btn';
-                btn.innerHTML = `
-                    <span>${subjectName} (${subjectCards.length} tarjetas)</span>
-                    <span class="toggle-icon" data-lucide="chevron-down"></span>
-                `;
-                
-                const content = document.createElement('div');
-                content.className = 'accordion-content p-4';
-                
-                if (type === 'hoy') {
-                    // Si es "hoy", añadimos botón de práctica
-                    const practiceBtn = document.createElement('button');
-                    practiceBtn.className = 'px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg text-sm hover:bg-blue-700';
-                    practiceBtn.textContent = 'Empezar Repaso';
-                    practiceBtn.onclick = (e) => {
-                        e.stopPropagation();
-                        // Ocultar botón, mostrar sesión de Anki
-                        content.innerHTML = '';
-                        startAnkiSession(subjectCards, content, () => {
-                            content.innerHTML = ''; // Limpiar al terminar
-                            content.appendChild(practiceBtn); // Mostrar botón de nuevo
-                            loadGlobalSummary(); // Recargar todo
-                        });
-                    };
-                    content.appendChild(practiceBtn);
-                } else {
-                    // Si es "futuro", solo listamos
-                    content.innerHTML = subjectCards
-                        .sort((a,b) => a.nextReviewDate.toMillis() - b.nextReviewDate.toMillis())
-                        .map(c => `<p class="text-sm text-gray-600 border-b pb-1 mb-1">${c.question.substring(0, 50)}... (${c.nextReviewDate.toDate().toLocaleDateString()})</p>`)
-                        .join('');
+            const now = new Date();
+            let allFutureCards = [];
+            
+            try {
+                const subjectsToQuery = (subject === 'all') ? allSubjectNames : [subject];
+                for (const subj of subjectsToQuery) {
+                    const q = query(
+                        collection(db, 'artifacts', firebaseConfig.projectId, 'users', userId, 'subjects', subj, 'saved_questions'),
+                        where('nextReviewDate', '>', now)
+                    );
+                    const snap = await getDocs(q);
+                    snap.forEach(d => {
+                        allFutureCards.push({ id: d.id, subject: subj, ...d.data() });
+                    });
                 }
 
-                btn.onclick = () => {
-                    const isExpanded = btn.getAttribute('aria-expanded') === 'true';
-                    btn.setAttribute('aria-expanded', !isExpanded);
-                    content.classList.toggle('open');
-                    btn.querySelector('.toggle-icon').style.transform = isExpanded ? 'rotate(0deg)' : 'rotate(180deg)';
-                };
+                els.roadmapLoader.classList.add('hidden');
+                
+                if (allFutureCards.length === 0) {
+                    els.roadmapList.innerHTML = '<p class="text-gray-400">No hay repasos futuros.</p>';
+                    return;
+                }
 
-                container.appendChild(btn);
-                container.appendChild(content);
+                // Agrupar por día
+                allFutureCards.sort((a,b) => a.nextReviewDate.toMillis() - b.nextReviewDate.toMillis());
+                const groupedByDay = allFutureCards.reduce((acc, card) => {
+                    const date = card.nextReviewDate.toDate().toLocaleDateString();
+                    if (!acc[date]) acc[date] = [];
+                    acc[date].push(card);
+                    return acc;
+                }, {});
+
+                // Renderizar
+                renderRoadmapAccordions(groupedByDay, subject === 'all');
+
+            } catch (error) {
+                console.error("Error cargando hoja de ruta:", error);
+                els.roadmapLoader.classList.add('hidden');
+                els.roadmapList.innerHTML = '<p class="text-red-500">Error al cargar la hoja de ruta.</p>';
             }
-            if (typeof lucide !== 'undefined') lucide.createIcons();
         }
 
         // --- MODO CHOICE (LÓGICA COMPLETA) ---
 
         async function handleAnalyzeChoice() {
+            // ... (Sin cambios, esta función ya depende de `currentSubject`) ...
+// ... (El resto de la función `handleAnalyzeChoice` es idéntica) ...
             const rawText = els.choiceRaw.value;
             if (!rawText.trim()) return showError("No hay texto de examen para analizar.");
-            if (!currentSubject) return showError("Selecciona una materia.");
+            if (!currentSubject || currentSubject === 'all') return showError("Selecciona una materia específica.");
 
             els.analyzeBtn.disabled = true;
             els.choiceLoader.classList.remove('hidden');
@@ -873,6 +850,7 @@
         }
 
         async function callGeminiForChoice(examText, syllabus, theory) {
+            // ... (Sin cambios) ...
             const prompt = `
                 Analiza este texto de examen Choice.
                 Contexto Syllabus: ${syllabus.substring(0, 2000)}...
@@ -895,6 +873,12 @@
         }
 
         async function loadChoiceTopics() {
+            // ... (Sin cambios, esta función ya depende de `currentSubject`) ...
+// ... (El resto de la función `loadChoiceTopics` es idéntica) ...
+            if (!currentSubject || currentSubject === 'all') {
+                 els.choiceList.innerHTML = '<p class="text-sm text-gray-400 italic">Selecciona una materia para ver sus temas.</p>';
+                 return;
+            }
             const q = query(collection(db, 'artifacts', firebaseConfig.projectId, 'users', userId, 'subjects', currentSubject, 'saved_mcq'));
             const snap = await getDocs(q);
             cachedMcqs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -915,7 +899,6 @@
                  return;
             }
             
-            // NUEVO: Guardar la lista de temas para el botón "Siguiente Tema"
             allPracticeTopicNames = Object.values(topics).sort((a,b) => a.name.localeCompare(b.name));
             
             allPracticeTopicNames.forEach(t => {
@@ -935,6 +918,8 @@
         }
 
         function startPractice(topic) {
+            // ... (Sin cambios) ...
+// ... (El resto de la función `startPractice` es idéntica) ...
             currentPracticeTopic = topic;
             currentPracticeQuestions = cachedMcqs.filter(m => (m.topic || "Sin Clasificar") === topic && m.status !== 'mastered');
             if(currentPracticeQuestions.length === 0) currentPracticeQuestions = cachedMcqs.filter(m => (m.topic || "Sin Clasificar") === topic);
@@ -943,18 +928,18 @@
             currentQuestionIndex = 0;
             currentQuizCorrect = 0;
             currentQuizWrong = 0;
-            currentQuizWrongCards = []; // Limpiar errores anteriores
+            currentQuizWrongCards = [];
             renderQuestion();
         }
 
         function renderQuestion() {
+            // ... (Sin cambios) ...
+// ... (El resto de la función `renderQuestion` es idéntica) ...
             if(currentQuestionIndex >= currentPracticeQuestions.length) {
-                // --- PANTALLA DE PUNTAJE MEJORADA ---
                 const total = currentPracticeQuestions.length;
                 const score = currentQuizCorrect;
                 const pct = total > 0 ? Math.round((score / total) * 100) : 0;
                 
-                // Buscar siguiente tema
                 const currentTopicIndex = allPracticeTopicNames.findIndex(t => t.name === currentPracticeTopic);
                 const nextTopic = (currentTopicIndex > -1 && currentTopicIndex + 1 < allPracticeTopicNames.length) 
                                     ? allPracticeTopicNames[currentTopicIndex + 1] : null;
@@ -973,12 +958,11 @@
                         </div>
                     </div>`;
                 
-                // Listeners para los nuevos botones
                 document.getElementById('choice-back').onclick = () => switchTab('choice');
                 document.getElementById('choice-retry').onclick = () => startPractice(currentPracticeTopic);
                 if (document.getElementById('choice-review-errors')) {
                     document.getElementById('choice-review-errors').onclick = () => {
-                        showError("¡Errores enviados! Revisa la pestaña 'Repasar (Materia)' para estudiarlos con Anki.", false);
+                        showError("¡Errores enviados! Revisa la pestaña 'Repasar' para estudiarlos con Anki.", false);
                         switchTab('review');
                     };
                 }
@@ -987,11 +971,11 @@
                 }
                 
                 if (typeof lucide !== 'undefined') lucide.createIcons();
-                loadChoiceTopics(); // Actualizar barras
+                loadChoiceTopics();
                 return;
             }
 
-            isFlashcardCreated = false; // Resetear el flag
+            isFlashcardCreated = false;
             const q = currentPracticeQuestions[currentQuestionIndex];
             const options = Array.isArray(q.options) ? q.options : [q.options];
 
@@ -1012,7 +996,6 @@
                             <button id="hint-btn" class="text-sm text-yellow-600 font-semibold flex items-center hover:underline">
                                 <svg data-lucide="lightbulb" class="w-4 h-4 mr-1"></svg> Pedir Pista
                             </button>
-                            <!-- NUEVO Botón [+ Anki] -->
                             <button id="anki-plus-btn" class="text-sm text-blue-600 font-semibold flex items-center hover:underline">
                                 <svg data-lucide="plus-square" class="w-4 h-4 mr-1"></svg> Crear Flashcard
                             </button>
@@ -1028,9 +1011,8 @@
                 </div>
             `;
             
-            // Event Listeners dinámicos
             document.getElementById('hint-btn').onclick = () => getHint(q);
-            document.getElementById('anki-plus-btn').onclick = () => createFlashcardManually(q); // NUEVO
+            document.getElementById('anki-plus-btn').onclick = () => createFlashcardManually(q);
             document.getElementById('next-q-btn').onclick = () => {
                 currentQuestionIndex++;
                 renderQuestion();
@@ -1041,6 +1023,7 @@
         }
 
         async function getHint(questionData) {
+            // ... (Sin cambios) ...
             const box = document.getElementById('hint-box');
             box.style.display = 'block';
             box.textContent = "Generando pista...";
@@ -1050,19 +1033,21 @@
         }
 
         async function checkAnswer(el, selectedText, qData) {
+            // ... (Sin cambios) ...
+// ... (El resto de la función `checkAnswer` es idéntica) ...
             document.querySelectorAll('.mcq-option').forEach(o => o.style.pointerEvents = 'none');
             const isCorrect = selectedText.trim() === String(qData.correctAnswer).trim();
             
             if (isCorrect) {
                 el.classList.add('correct');
-                currentQuizCorrect++; // Contar acierto
+                currentQuizCorrect++;
                 if (qData.status !== 'mastered') {
                     await updateDoc(doc(db, 'artifacts', firebaseConfig.projectId, 'users', userId, 'subjects', currentSubject, 'saved_mcq', qData.id), { status: 'mastered' });
                     qData.status = 'mastered';
                 }
             } else {
                 el.classList.add('incorrect');
-                currentQuizWrong++; // Contar error
+                currentQuizWrong++;
                 document.querySelectorAll('.mcq-option').forEach(opt => {
                     if (opt.textContent.trim() === String(qData.correctAnswer).trim()) opt.classList.add('correct');
                 });
@@ -1071,7 +1056,7 @@
                     isFlashcardCreated = true;
                     await createFlashcardFromWrongAnswer(qData);
                     const feedback = document.getElementById('flashcard-feedback');
-                    feedback.textContent = '¡Respuesta incorrecta! Se creó una flashcard en "Repasar (Materia)".';
+                    feedback.textContent = '¡Respuesta incorrecta! Se creó una flashcard en "Repasar".';
                     feedback.style.display = 'block';
                 }
             }
@@ -1086,8 +1071,8 @@
         // --- LÓGICA ANKI MEJORADA ---
         
         async function createFlashcardFromWrongAnswer(qData) {
+            // ... (Sin cambios) ...
             if (!currentSubject || !qData) return;
-            // Crear flashcard
             const flashcard = {
                 question: qData.question,
                 answer: `<b>Respuesta Correcta:</b> ${qData.correctAnswer}<br><br><b>Justificación:</b> ${qData.justification || "Sin justificación."}`,
@@ -1098,69 +1083,34 @@
                 nextReviewDate: serverTimestamp(),
                 createdAt: serverTimestamp()
             };
-            currentQuizWrongCards.push(flashcard); // Guardar para la sesión de repaso de errores
+            currentQuizWrongCards.push(flashcard);
             await addDoc(collection(db, 'artifacts', firebaseConfig.projectId, 'users', userId, 'subjects', currentSubject, 'saved_questions'), flashcard);
         }
         
         async function createFlashcardManually(qData) {
+            // ... (Sin cambios) ...
             if (!currentSubject || !qData) return;
-            if (isFlashcardCreated) return; // Evitar doble creación
+            if (isFlashcardCreated) return;
             
             isFlashcardCreated = true;
-            await createFlashcardFromWrongAnswer(qData); // Reutiliza la misma lógica
+            await createFlashcardFromWrongAnswer(qData);
             const feedback = document.getElementById('flashcard-feedback');
-            feedback.textContent = '¡Flashcard creada! Revísala en "Repasar (Materia)".';
+            feedback.textContent = '¡Flashcard creada! Revísala en "Repasar".';
             feedback.style.display = 'block';
-            document.getElementById('anki-plus-btn').style.display = 'none'; // Ocultar botón
+            document.getElementById('anki-plus-btn').style.display = 'none';
         }
         
         // --- SISTEMA DE REPASO (SRS - ANKI) ---
-
-        function setupReviewListener() {
-            if (unsubscribeReview) unsubscribeReview();
-            if (!currentSubject) {
-                els.reviewList.innerHTML = '<p class="text-gray-400 text-center py-10">Selecciona una materia para ver sus repasos.</p>';
-                return;
-            }
-            
-            const now = new Date();
-            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            
-            const q = query(collection(db, 'artifacts', firebaseConfig.projectId, 'users', userId, 'subjects', currentSubject, 'saved_questions'), where('nextReviewDate', '<=', now));
-            
-            unsubscribeReview = onSnapshot(q, (snap) => {
-                const cards = snap.docs.map(d => ({id: d.id, ...d.data()}));
-                els.reviewCount.textContent = cards.length;
-                
-                // Calcular vencidas
-                const overdueCount = cards.filter(c => c.nextReviewDate.toDate() < today).length;
-                if (overdueCount > 0) {
-                    els.reviewOverdue.textContent = `[!] ¡Atención! Tienes ${overdueCount} tarjetas vencidas de días anteriores.`;
-                    els.reviewOverdue.style.display = 'block';
-                } else {
-                    els.reviewOverdue.style.display = 'none';
-                }
-                
-                renderReviewCards(cards);
-            }, (error) => {
-                console.error("Error en listener de 'Repasar':", error);
-                els.reviewList.innerHTML = "<p class='text-red-500'>Error al cargar. Revisa la consola.</p>";
-            });
-        }
-
+        
         // --- FUNCIÓN DE RENDERIZADO DE ANKI (REUTILIZABLE) ---
-        /**
-         * Renderiza una lista de tarjetas de Anki en un contenedor.
-         * @param {Array} cards - El array de tarjetas a repasar.
-         * @param {HTMLElement} container - El elemento HTML donde renderizar.
-         * @param {Function} [onFinish] - Callback opcional que se ejecuta al terminar la sesión.
-         */
         function startAnkiSession(cards, container, onFinish) {
+            // ... (Sin cambios) ...
+// ... (El resto de la función `startAnkiSession` es idéntica) ...
             let currentCardIndex = 0;
-            const originalCards = [...cards]; // Copia para saber el total
+            const originalCards = [...cards];
 
             function renderNextCard() {
-                container.innerHTML = ''; // Limpiar
+                container.innerHTML = '';
                 if (currentCardIndex >= originalCards.length) {
                     container.innerHTML = '<p class="text-green-600 font-bold p-4 text-center">¡Sesión completada!</p>';
                     if (onFinish) onFinish();
@@ -1169,7 +1119,7 @@
                 
                 const card = originalCards[currentCardIndex];
                 const div = document.createElement('div');
-                div.className = 'qa-card border border-blue-300 shadow-lg'; // Resaltar
+                div.className = 'qa-card border border-blue-300 shadow-lg';
                 
                 let imageHtml = card.imageUrl ? `<img src="${card.imageUrl}" alt="Imagen de repaso" class="mt-2 rounded-md max-h-60 object-contain">` : '';
 
@@ -1185,7 +1135,6 @@
                             <button class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-bold" data-rate="easy">Fácil</button>
                         </div>
                     </div>
-                    <!-- NUEVO: Botón de Editar en la sesión de repaso -->
                     <button class="edit-qa-btn !top-auto bottom-3 right-3">
                         <svg data-lucide="pencil" class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
                     </button>
@@ -1205,7 +1154,6 @@
                     };
                 });
                 
-                // Listener para el nuevo botón de editar
                 div.querySelector('.edit-qa-btn').onclick = (e) => {
                     e.stopPropagation();
                     openEditModal(card);
@@ -1215,47 +1163,47 @@
                 if (typeof lucide !== 'undefined') lucide.createIcons();
             }
             
-            renderNextCard(); // Empezar la sesión
+            renderNextCard();
         }
 
         // --- MODIFICADO: "Repasar (Hoy)" ahora usa la lógica de agrupación ---
-        function renderReviewCards(cards) {
+        function renderReviewCards(cards, isGlobal) {
             els.reviewList.innerHTML = '';
             if (cards.length === 0) {
                 els.reviewList.innerHTML = '<div class="text-center py-10 text-green-600 font-bold bg-green-50 rounded">¡Todo al día!</div>';
                 return;
             }
             
-            // Agrupar por tema
-            const groupedByTopic = cards.reduce((acc, card) => {
-                const topic = card.topic || "Sin Clasificar";
-                if (!acc[topic]) acc[topic] = [];
-                acc[topic].push(card);
+            // Agrupar por tema (o por materia si es global)
+            const groupKey = isGlobal ? 'subject' : 'topic';
+            const groupedCards = cards.reduce((acc, card) => {
+                const name = card[groupKey] || (isGlobal ? "Sin Materia" : "Sin Clasificar");
+                if (!acc[name]) acc[name] = [];
+                acc[name].push(card);
                 return acc;
             }, {});
             
             // Renderizar acordeón
-            for (const topicName in groupedByTopic) {
-                const topicCards = groupedByTopic[topicName];
+            for (const groupName in groupedCards) {
+                const groupCards = groupedCards[groupName];
                 const btn = document.createElement('button');
                 btn.className = 'accordion-btn';
                 btn.innerHTML = `
-                    <span>${topicName} (${topicCards.length} tarjetas)</span>
+                    <span>${groupName} (${groupCards.length} tarjetas)</span>
                     <span class="toggle-icon" data-lucide="chevron-down"></span>
                 `;
                 
                 const content = document.createElement('div');
                 content.className = 'accordion-content p-4';
                 
-                // Botón para iniciar el repaso de este tema
                 const practiceBtn = document.createElement('button');
                 practiceBtn.className = 'px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg text-sm hover:bg-blue-700';
-                practiceBtn.textContent = 'Empezar Repaso del Tema';
+                practiceBtn.textContent = 'Empezar Repaso';
                 practiceBtn.onclick = (e) => {
                     e.stopPropagation();
-                    startAnkiSession(topicCards, content, () => {
+                    startAnkiSession(groupCards, content, () => {
                         // Al terminar, recargar la lista de repasos
-                        setupReviewListener();
+                        loadReviewData(currentSubject);
                     });
                 };
                 content.appendChild(practiceBtn);
@@ -1274,7 +1222,8 @@
         }
 
         async function processSRS(card, rating) {
-            // ... (Lógica de SRS sin cambios) ...
+            // ... (Sin cambios) ...
+// ... (El resto de la función `processSRS` es idéntica) ...
             let nextDate = new Date();
             let nextStep = card.reviewStep || 0;
             
@@ -1287,7 +1236,6 @@
                 nextStep++;
             }
             
-            // Determinar la materia correcta (puede venir de una sesión global)
             const subject = card.subject || currentSubject;
             if (!subject) {
                  console.error("Error: No se pudo determinar la materia de la tarjeta.", card);
@@ -1302,9 +1250,9 @@
         
         // --- MODAL DE EDICIÓN DE FLASHCARD (NUEVO) ---
         function openEditModal(card) {
+            // ... (Sin cambios) ...
             if(!card) return;
             document.getElementById('edit-qa-id').value = card.id;
-            // CORRECCIÓN: Guardar la materia en el modal para saber qué doc actualizar
             document.getElementById('edit-qa-subject').value = card.subject || currentSubject; 
             document.getElementById('edit-qa-question').value = card.question || '';
             document.getElementById('edit-qa-answer').value = card.answer || '';
@@ -1313,8 +1261,9 @@
         }
         
         async function saveEditQa() {
+            // ... (Sin cambios) ...
+// ... (El resto de la función `saveEditQa` es idéntica) ...
             const id = document.getElementById('edit-qa-id').value;
-            // CORRECCIÓN: Leer la materia desde el modal
             const subject = document.getElementById('edit-qa-subject').value; 
             
             if (!id || !subject) {
@@ -1334,9 +1283,14 @@
                 els.editQaModal.style.display = 'none';
                 
                 // Recargar la vista actual para ver los cambios
-                if (currentTab === 'summary') loadGlobalSummary();
-                if (currentTab === 'review' && subject === currentSubject) setupReviewListener();
-                if (currentTab === 'topics' && subject === currentSubject) loadTopicManager();
+                if (currentSubject === 'all') {
+                    if (currentTab === 'review') loadReviewData('all');
+                    if (currentTab === 'roadmap') loadRoadmapData('all');
+                } else {
+                    if (currentTab === 'review') loadReviewData(currentSubject);
+                    if (currentTab === 'roadmap') loadRoadmapData(currentSubject);
+                    if (currentTab === 'topics') loadTopicManager();
+                }
                 
             } catch (e) {
                 console.error("Error al guardar edición:", e);
@@ -1345,98 +1299,69 @@
         }
 
         // --- HOJA DE RUTA (MEJORADA) ---
-        function setupRoadmapListener() {
-            if (unsubscribeRoadmap) unsubscribeRoadmap();
-            if (!currentSubject) {
-                 els.roadmapList.innerHTML = '<p class="text-gray-400 text-center py-10">Selecciona una materia.</p>';
-                 return;
-            }
-            
-            els.roadmapLoader.style.display = 'block';
-            els.roadmapList.innerHTML = '';
-            els.roadmapPractice.innerHTML = '';
-            els.roadmapPractice.style.display = 'none';
-
-            const now = new Date();
-            const q = query(
-                collection(db, 'artifacts', firebaseConfig.projectId, 'users', userId, 'subjects', currentSubject, 'saved_questions'),
-                where('nextReviewDate', '>', now),
-                orderBy('nextReviewDate', 'asc')
-            );
-            
-            unsubscribeRoadmap = onSnapshot(q, (snap) => {
-                els.roadmapLoader.style.display = 'none';
-                if(snap.empty) { els.roadmapList.innerHTML = '<p class="text-gray-400">No hay repasos futuros.</p>'; return; }
-
-                // Agrupar por día
-                const groupedByDay = snap.docs.reduce((acc, d) => {
-                    const card = {id: d.id, ...d.data()};
-                    const date = card.nextReviewDate.toDate().toLocaleDateString();
-                    if (!acc[date]) acc[date] = [];
-                    acc[date].push(card);
-                    return acc;
-                }, {});
-
-                els.roadmapList.innerHTML = ''; // Limpiar
-                for (const dateStr in groupedByDay) {
-                    const dayCards = groupedByDay[dateStr];
-                    const btn = document.createElement('button');
-                    btn.className = 'accordion-btn';
-                    btn.innerHTML = `
-                        <span>${dateStr} (${dayCards.length} tarjetas)</span>
-                        <div class="flex items-center gap-2">
-                            <button class="practice-day-btn px-3 py-1 bg-blue-100 text-blue-700 font-semibold rounded-lg text-xs hover:bg-blue-200">Practicar este día</button>
-                            <span class="toggle-icon" data-lucide="chevron-down"></span>
-                        </div>
-                    `;
-                    
-                    const content = document.createElement('div');
-                    content.className = 'accordion-content p-4 space-y-1';
-                    content.innerHTML = dayCards.map(c => `<p class="text-sm text-gray-600 border-b pb-1">${c.question.substring(0, 70)}...</p>`).join('');
-
-                    btn.querySelector('.practice-day-btn').onclick = (e) => {
-                        e.stopPropagation();
-                        els.roadmapList.style.display = 'none'; // Ocultar lista
-                        els.roadmapPractice.style.display = 'block'; // Mostrar sesión
-                        startAnkiSession(dayCards, els.roadmapPractice, () => {
-                            // Al terminar, volver a la lista
-                            els.roadmapPractice.style.display = 'none';
-                            els.roadmapList.style.display = 'block';
-                            setupRoadmapListener(); // Recargar
-                        });
-                    };
-
-                    btn.onclick = () => {
-                        const isExpanded = btn.getAttribute('aria-expanded') === 'true';
-                        btn.setAttribute('aria-expanded', !isExpanded);
-                        content.classList.toggle('open');
-                        btn.querySelector('.toggle-icon').style.transform = isExpanded ? 'rotate(0deg)' : 'rotate(180deg)';
-                    };
-                    
-                    els.roadmapList.appendChild(btn);
-                    els.roadmapList.appendChild(content);
-                }
-                if (typeof lucide !== 'undefined') lucide.createIcons();
+        function renderRoadmapAccordions(groupedByDay, isGlobal) {
+            els.roadmapList.innerHTML = ''; // Limpiar
+            for (const dateStr in groupedByDay) {
+                const dayCards = groupedByDay[dateStr];
+                const btn = document.createElement('button');
+                btn.className = 'accordion-btn';
+                btn.innerHTML = `
+                    <span>${dateStr} (${dayCards.length} tarjetas)</span>
+                    <div class="flex items-center gap-2">
+                        <button class="practice-day-btn px-3 py-1 bg-blue-100 text-blue-700 font-semibold rounded-lg text-xs hover:bg-blue-200">Practicar este día</button>
+                        <span class="toggle-icon" data-lucide="chevron-down"></span>
+                    </div>
+                `;
                 
-            }, (error) => {
-                 console.error("Error en listener de 'Hoja de Ruta':", error);
-                 els.roadmapLoader.style.display = 'none';
-                 document.getElementById('roadmap-list').innerHTML = "<p class='text-red-500'>Error al cargar.</p>";
-            });
+                const content = document.createElement('div');
+                content.className = 'accordion-content p-4 space-y-1';
+                
+                // Si es global, mostrar la materia
+                content.innerHTML = dayCards.map(c => 
+                    `<p class="text-sm text-gray-600 border-b pb-1">
+                        ${isGlobal ? `<span class="font-bold text-purple-700">[${c.subject}]</span>` : ''}
+                        ${c.question.substring(0, 70)}...
+                    </p>`
+                ).join('');
+
+                btn.querySelector('.practice-day-btn').onclick = (e) => {
+                    e.stopPropagation();
+                    els.roadmapList.style.display = 'none'; // Ocultar lista
+                    els.roadmapPractice.style.display = 'block'; // Mostrar sesión
+                    startAnkiSession(dayCards, els.roadmapPractice, () => {
+                        // Al terminar, volver a la lista
+                        els.roadmapPractice.style.display = 'none';
+                        els.roadmapList.style.display = 'block';
+                        loadRoadmapData(currentSubject); // Recargar
+                    });
+                };
+
+                btn.onclick = () => {
+                    const isExpanded = btn.getAttribute('aria-expanded') === 'true';
+                    btn.setAttribute('aria-expanded', !isExpanded);
+                    content.classList.toggle('open');
+                    btn.querySelector('.toggle-icon').style.transform = isExpanded ? 'rotate(0deg)' : 'rotate(180deg)';
+                };
+                
+                els.roadmapList.appendChild(btn);
+                els.roadmapList.appendChild(content);
+            }
+            if (typeof lucide !== 'undefined') lucide.createIcons();
         }
         
         // --- PESTAÑA "ADMINISTRAR TEMAS" (NUEVA LÓGICA) ---
         
         async function loadTopicManager() {
-            if (!currentSubject) {
-                 els.topicManagerList.innerHTML = '<p class="text-gray-400 text-center py-10">Selecciona una materia.</p>';
+            // ... (Sin cambios, esta función ya depende de `currentSubject`) ...
+// ... (El resto de la función `loadTopicManager` es idéntica) ...
+            if (!currentSubject || currentSubject === 'all') {
+                 els.topicManagerList.innerHTML = '<p class="text-gray-400 text-center py-10">Selecciona una materia específica.</p>';
                  return;
             }
             els.topicManagerLoader.style.display = 'block';
             els.topicManagerList.innerHTML = '';
             
             try {
-                // 1. Obtener todas las preguntas de ambas colecciones
                 const mcqSnap = await getDocs(query(collection(db, 'artifacts', firebaseConfig.projectId, 'users', userId, 'subjects', currentSubject, 'saved_mcq')));
                 const ankiSnap = await getDocs(query(collection(db, 'artifacts', firebaseConfig.projectId, 'users', userId, 'subjects', currentSubject, 'saved_questions')));
                 
@@ -1444,7 +1369,6 @@
                 mcqSnap.forEach(d => allQuestions.push({ id: d.id, type: 'mcq', ...d.data() }));
                 ankiSnap.forEach(d => allQuestions.push({ id: d.id, type: 'anki', ...d.data() }));
                 
-                // 2. Agrupar por tema
                 const groupedByTopic = allQuestions.reduce((acc, q) => {
                     const topic = q.topic || "Sin Clasificar";
                     if (!acc[topic]) acc[topic] = [];
@@ -1454,7 +1378,6 @@
                 
                 els.topicManagerLoader.style.display = 'none';
                 
-                // 3. Renderizar el acordeón de temas
                 const sortedTopics = Object.keys(groupedByTopic).sort();
                 sortedTopics.forEach(topicName => {
                     const topicQuestions = groupedByTopic[topicName];
@@ -1479,7 +1402,6 @@
                                     <p class="text-sm flex-1">
                                         <span class="font-semibold ${q.type === 'mcq' ? 'text-purple-700' : 'text-blue-700'}">[${q.type.toUpperCase()}]</span>
                                         ${q.question}
-                                        <!-- Botón de editar solo para tarjetas Anki -->
                                         ${q.type === 'anki' ? `<button class="edit-qa-inline-btn text-xs text-blue-500 hover:underline" data-id="${q.id}">Editar</button>` : ''}
                                     </p>
                                 </div>
@@ -1487,7 +1409,6 @@
                         </div>
                     `;
                     
-                    // Listeners
                     div.querySelector('.accordion-btn').onclick = (e) => {
                         if (e.target.closest('input') || e.target.closest('.rename-topic-btn')) return;
                         const btn = e.currentTarget;
@@ -1503,20 +1424,18 @@
                         renombrarTema(topicName);
                     };
                     
-                    // Listener para botones de editar (solo anki)
                     div.querySelectorAll('.edit-qa-inline-btn').forEach(btn => {
                         btn.onclick = async (e) => {
                             e.stopPropagation();
                             const cardId = e.target.dataset.id;
                             const card = (await getDoc(doc(db, 'artifacts', firebaseConfig.projectId, 'users', userId, 'subjects', currentSubject, 'saved_questions', cardId))).data();
-                            openEditModal({id: cardId, subject: currentSubject, ...card}); // CORRECCIÓN: Pasar 'subject'
+                            openEditModal({id: cardId, subject: currentSubject, ...card});
                         }
                     });
                     
                     els.topicManagerList.appendChild(div);
                 });
                 
-                // Activar/desactivar botones de control
                 els.topicManagerList.querySelectorAll('input[type="checkbox"]').forEach(box => {
                     box.onchange = updateTopicManagerControls;
                 });
@@ -1531,6 +1450,7 @@
         }
         
         function updateTopicManagerControls() {
+            // ... (Sin cambios) ...
             const selectedTopics = els.topicManagerList.querySelectorAll('.topic-select-box:checked').length;
             const selectedQuestions = els.topicManagerList.querySelectorAll('.question-select-box:checked').length;
             
@@ -1539,14 +1459,16 @@
         }
 
         async function renombrarTema(oldTopicName) {
+            // ... (Sin cambios) ...
             const newTopicName = prompt(`Renombrar tema:\n"${oldTopicName}"\n\nNuevo nombre:`);
             if (!newTopicName || newTopicName.trim() === '' || newTopicName === oldTopicName) return;
             
             await updateTopicNames([oldTopicName], newTopicName);
-            loadTopicManager(); // Recargar
+            loadTopicManager();
         }
 
         async function mergeSelectedTopics() {
+            // ... (Sin cambios) ...
             const selectedTopics = Array.from(els.topicManagerList.querySelectorAll('.topic-select-box:checked'))
                                        .map(box => box.dataset.topicName);
             if (selectedTopics.length < 2) return;
@@ -1555,10 +1477,11 @@
             if (!newTopicName || newTopicName.trim() === '') return;
             
             await updateTopicNames(selectedTopics, newTopicName);
-            loadTopicManager(); // Recargar
+            loadTopicManager();
         }
         
         async function createSubtopicFromSelected() {
+            // ... (Sin cambios) ...
             const selectedQuestions = Array.from(els.topicManagerList.querySelectorAll('.question-select-box:checked'));
             if (selectedQuestions.length === 0) return;
             
@@ -1575,7 +1498,7 @@
                 });
                 await batch.commit();
                 showError("Subtema creado con éxito.", false);
-                loadTopicManager(); // Recargar
+                loadTopicManager();
             } catch (e) {
                 console.error("Error creando subtema:", e);
                 showError("Error al crear el subtema.");
@@ -1583,15 +1506,14 @@
         }
 
         async function updateTopicNames(oldNames, newName) {
+            // ... (Sin cambios) ...
             try {
                 const batch = writeBatch(db);
                 
-                // Actualizar MCQs
                 const mcqQuery = query(collection(db, 'artifacts', firebaseConfig.projectId, 'users', userId, 'subjects', currentSubject, 'saved_mcq'), where('topic', 'in', oldNames));
                 const mcqSnap = await getDocs(mcqQuery);
                 mcqSnap.forEach(d => batch.update(d.ref, { topic: newName }));
                 
-                // Actualizar Anki
                 const ankiQuery = query(collection(db, 'artifacts', firebaseConfig.projectId, 'users', userId, 'subjects', currentSubject, 'saved_questions'), where('topic', 'in', oldNames));
                 const ankiSnap = await getDocs(ankiQuery);
                 ankiSnap.forEach(d => batch.update(d.ref, { topic: newName }));
@@ -1607,6 +1529,8 @@
         // --- MODOS ORALES (Estructura de Temas Mejorada) ---
         
         async function loadSyllabusBrowser() {
+            // ... (Sin cambios) ...
+// ... (El resto de la función `loadSyllabusBrowser` es idéntica) ...
             const container = document.getElementById('syllabus-browser');
             container.innerHTML = `<div class="loader mx-auto"></div><p class="text-center text-gray-500">Analizando Syllabus, Teoría y Choices para crear la estructura...</p>`;
             try {
@@ -1640,6 +1564,8 @@
         }
         
         async function parseSyllabusWithAI(fullMaterial) {
+             // ... (Sin cambios) ...
+// ... (El resto de la función `parseSyllabusWithAI` es idéntica) ...
              const prompt = `
                 Analiza todo el material de estudio (Plan de Estudio, Teoría y Exámenes) y genera una estructura de temas (Unidades y Temas).
                 Material: ${fullMaterial.substring(0, 25000)}...
@@ -1649,7 +1575,7 @@
             try {
                 txt = txt.replace(/\\\[/g, '[').replace(/\\\]/g, ']');
                 const jsonMatch = txt.match(/\[\s*\{.*\}\s*\]/s); 
-                let jsonToParse = (jsonMatch && jsonMatch[0]) ? jsonMatch[0] : txt;
+                let jsonToParse = (jsonMatch && jsonMatch[0]) ? jsonToParse = jsonMatch[0] : txt;
                 return JSON.parse(jsonToParse);
             } catch(e) {
                  console.error("Falló el parseo de syllabus con IA:", e, "Respuesta original:", txt);
@@ -1658,6 +1584,7 @@
         }
 
         function resetModes() {
+            // ... (Sin cambios) ...
             els.studyContainer.classList.add('hidden');
             els.examContainer.classList.add('hidden');
             els.modeSelection.classList.remove('hidden');
@@ -1665,6 +1592,7 @@
         }
         
         async function generateOralExam() {
+            // ... (Sin cambios) ...
             const out = document.getElementById('exam-output');
             out.innerHTML = "Generando...";
             const prompt = `Genera 3 preguntas de examen oral sobre: ${document.getElementById('syllabus').value.substring(0,1000)}...`;
@@ -1676,6 +1604,8 @@
         const API_KEY = "AIzaSyA1RYWX9v5UFVVGVcI9KKyPXK3BDnIRkqw";
 
         async function callGeminiAPI(prompt, expectJson) {
+            // ... (Sin cambios) ...
+// ... (El resto de la función `callGeminiAPI` es idéntica) ...
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${API_KEY}`;
             const body = {
                 contents: [{ parts: [{ text: prompt }] }],
@@ -1706,6 +1636,7 @@
         }
 
         function showError(msg, isError = true) {
+            // ... (Sin cambios) ...
             const m = document.getElementById('error-modal');
             const t = document.getElementById('error-msg');
             const h = document.getElementById('error-title');
