@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulador Tutor IA - V8 (Global)</title>
+    <title>Simulador Tutor IA - V8 (Corregido)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -344,6 +344,7 @@
         <div class="bg-white p-6 rounded-lg max-w-lg w-full shadow-2xl">
             <h3 class="text-xl font-bold text-gray-800 mb-4">Editar Flashcard</h3>
             <input type="hidden" id="edit-qa-id">
+            <input type="hidden" id="edit-qa-subject"> <!-- CORRECCIÓN: Para saber qué materia editar -->
             <div class="space-y-3">
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Pregunta</label>
@@ -463,7 +464,7 @@
                     } else {
                         document.getElementById('user-id').textContent = userId;
                         document.getElementById('sync-id-display').style.display = 'block';
-                        await loadSubjects();
+                        await loadSubjects(); // CORRECCIÓN: Manejar error aquí
                         switchTab(currentTab); // Cargar la pestaña inicial (Resumen)
                         if (typeof lucide !== 'undefined') lucide.createIcons();
                     }
@@ -552,14 +553,22 @@
         }
 
         async function loadSubjects() {
-            const ref = collection(db, 'artifacts', firebaseConfig.projectId, 'users', userId, 'subjects');
-            const snap = await getDocs(ref);
-            els.subjectSelect.innerHTML = '<option value="">-- Seleccionar --</option>';
-            snap.forEach(d => {
-                const opt = document.createElement('option');
-                opt.value = d.id; opt.textContent = d.id;
-                els.subjectSelect.appendChild(opt);
-            });
+            // --- CORRECCIÓN DE BUG ---
+            try {
+                const ref = collection(db, 'artifacts', firebaseConfig.projectId, 'users', userId, 'subjects');
+                const snap = await getDocs(ref);
+                els.subjectSelect.innerHTML = '<option value="">-- Seleccionar --</option>';
+                snap.forEach(d => {
+                    const opt = document.createElement('option');
+                    opt.value = d.id; opt.textContent = d.id;
+                    els.subjectSelect.appendChild(opt);
+                });
+            } catch (error) {
+                console.error("Error fatal al cargar materias:", error);
+                showError("Error al cargar materias. Revisa los permisos de Firestore.");
+                els.subjectHeader.innerHTML = '<p class="text-red-500">Error al cargar materias.</p>';
+            }
+            // --- FIN CORRECCIÓN ---
         }
 
         async function createSubject() {
@@ -598,8 +607,13 @@
             // Cargar datos de la nueva materia
             loadMaterialFields();
             
-            // Cargar datos de la pestaña activa
-            switchTab(currentTab);
+            // Cargar datos de la pestaña activa (switchTab se llama desde el else de summary)
+            if (currentTab !== 'summary') {
+                if (currentTab === 'choice') loadChoiceTopics();
+                if (currentTab === 'topics') loadTopicManager();
+                if (currentTab === 'review') setupReviewListener();
+                if (currentTab === 'roadmap') setupRoadmapListener();
+            }
         }
 
         // --- LÓGICA MATERIAL (PDF & SAVE) ---
@@ -705,22 +719,29 @@
             let globalDueCards = [];
             let globalFutureCards = [];
 
+            // --- CORRECCIÓN DE BUG ---
             for (const subject of allSubjects) {
-                const q = query(
-                    collection(db, 'artifacts', firebaseConfig.projectId, 'users', userId, 'subjects', subject, 'saved_questions'),
-                    where('nextReviewDate', '<', nextWeek)
-                );
-                const snap = await getDocs(q);
-                snap.forEach(d => {
-                    const card = { id: d.id, subject: subject, ...d.data() };
-                    const cardDate = card.nextReviewDate.toDate();
-                    if (cardDate <= today) {
-                        globalDueCards.push(card);
-                    } else {
-                        globalFutureCards.push(card);
-                    }
-                });
+                try { // Añadir try...catch DENTRO del loop
+                    const q = query(
+                        collection(db, 'artifacts', firebaseConfig.projectId, 'users', userId, 'subjects', subject, 'saved_questions'),
+                        where('nextReviewDate', '<', nextWeek)
+                    );
+                    const snap = await getDocs(q);
+                    snap.forEach(d => {
+                        const card = { id: d.id, subject: subject, ...d.data() };
+                        const cardDate = card.nextReviewDate.toDate();
+                        if (cardDate <= today) {
+                            globalDueCards.push(card);
+                        } else {
+                            globalFutureCards.push(card);
+                        }
+                    });
+                } catch (error) {
+                    console.error(`Error al cargar repasos para la materia "${subject}":`, error);
+                    // Si una materia falla, simplemente la saltamos y continuamos
+                }
             }
+            // --- FIN CORRECCIÓN ---
 
             els.summaryLoader.style.display = 'none';
             
@@ -1283,6 +1304,8 @@
         function openEditModal(card) {
             if(!card) return;
             document.getElementById('edit-qa-id').value = card.id;
+            // CORRECCIÓN: Guardar la materia en el modal para saber qué doc actualizar
+            document.getElementById('edit-qa-subject').value = card.subject || currentSubject; 
             document.getElementById('edit-qa-question').value = card.question || '';
             document.getElementById('edit-qa-answer').value = card.answer || '';
             document.getElementById('edit-qa-image').value = card.imageUrl || '';
@@ -1291,12 +1314,11 @@
         
         async function saveEditQa() {
             const id = document.getElementById('edit-qa-id').value;
-            if (!id || !currentSubject) {
-                // Si estamos en "Resumen de Hoy", currentSubject puede ser null
-                // Necesitamos encontrar la tarjeta en *todas* las materias (o tener la materia en la tarjeta)
-                // Por ahora, asumimos que solo editamos desde una pestaña de materia.
-                // TODO: Mejorar esto si se edita desde "Resumen de Hoy"
-                showError("Por favor, edita tarjetas desde la pestaña de su materia ('Administrar Temas').");
+            // CORRECCIÓN: Leer la materia desde el modal
+            const subject = document.getElementById('edit-qa-subject').value; 
+            
+            if (!id || !subject) {
+                showError("Error: No se pudo encontrar la tarjeta para guardar. Falta ID o Materia.");
                 return;
             };
             
@@ -1307,12 +1329,15 @@
             };
             
             try {
-                const docRef = doc(db, 'artifacts', firebaseConfig.projectId, 'users', userId, 'subjects', currentSubject, 'saved_questions', id);
+                const docRef = doc(db, 'artifacts', firebaseConfig.projectId, 'users', userId, 'subjects', subject, 'saved_questions', id);
                 await updateDoc(docRef, data);
                 els.editQaModal.style.display = 'none';
+                
                 // Recargar la vista actual para ver los cambios
-                if (currentTab === 'review') setupReviewListener();
-                if (currentTab === 'topics') loadTopicManager();
+                if (currentTab === 'summary') loadGlobalSummary();
+                if (currentTab === 'review' && subject === currentSubject) setupReviewListener();
+                if (currentTab === 'topics' && subject === currentSubject) loadTopicManager();
+                
             } catch (e) {
                 console.error("Error al guardar edición:", e);
                 showError("No se pudo guardar la tarjeta.");
@@ -1484,7 +1509,7 @@
                             e.stopPropagation();
                             const cardId = e.target.dataset.id;
                             const card = (await getDoc(doc(db, 'artifacts', firebaseConfig.projectId, 'users', userId, 'subjects', currentSubject, 'saved_questions', cardId))).data();
-                            openEditModal({id: cardId, ...card});
+                            openEditModal({id: cardId, subject: currentSubject, ...card}); // CORRECCIÓN: Pasar 'subject'
                         }
                     });
                     
