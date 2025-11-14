@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulador Tutor IA - V9 (Global)</title>
+    <title>Simulador Tutor IA - V9 (Carga Corregida)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -553,14 +553,14 @@
                 await setDoc(doc(db, 'artifacts', firebaseConfig.projectId, 'users', userId, 'subjects', name), { created: serverTimestamp() });
                 await loadSubjects();
                 els.subjectSelect.value = name;
-                changeSubject();
+                await changeSubject(); // CORRECCIÓN: Esperar a que changeSubject cargue todo
             } catch (e) {
                 console.error("Error creating subject: ", e);
                 showError("Error al crear la materia. Revisa la consola.");
             }
         }
 
-        function changeSubject() {
+        async function changeSubject() {
             currentSubject = els.subjectSelect.value;
             
             // Limpiar listeners y UI de la materia anterior
@@ -571,25 +571,56 @@
             clearAllTabs();
 
             // Cargar datos basados en la nueva selección
-            loadDataForCurrentTab();
+            // --- CORRECCIÓN DE BUG: Cargar TODOS los datos de la materia al cambiar ---
+            if (currentSubject && currentSubject !== 'all') {
+                // Seleccionó una materia específica
+                showLoadingOnTabs(true);
+                try {
+                    await Promise.all([
+                        loadMaterialFields(),
+                        loadChoiceTopics(),
+                        loadTopicManager(),
+                        loadReviewData(currentSubject),
+                        loadRoadmapData(currentSubject)
+                    ]);
+                } catch (error) {
+                    console.error("Error al cargar datos de la materia:", error);
+                    showError("Error al cargar datos de la materia. Revisa la consola.");
+                }
+                showLoadingOnTabs(false);
+            } else if (currentSubject === 'all') {
+                // Seleccionó "Ver Todas"
+                showLoadingOnTabs(true);
+                try {
+                     await Promise.all([
+                        loadReviewData('all'),
+                        loadRoadmapData('all')
+                    ]);
+                } catch (error) {
+                     console.error("Error al cargar datos globales:", error);
+                }
+                showLoadingOnTabs(false);
+            }
+            // --- FIN DE CORRECCIÓN ---
         }
         
-        // --- CORRECCIÓN DE BUG: Lógica de carga centralizada ---
+        // --- CORRECCIÓN: Función de carga eliminada, lógica movida a changeSubject ---
         function loadDataForCurrentTab() {
-            const subject = currentSubject; // 'all', 'materia', ''
-            
-            // Pestañas que SÓLO funcionan con una materia seleccionada
-            if (subject && subject !== 'all') {
-                if (currentTab === 'material') loadMaterialFields();
-                if (currentTab === 'choice') loadChoiceTopics();
-                if (currentTab === 'simulador') { /* No necesita carga */ }
-                if (currentTab === 'topics') loadTopicManager();
-            }
-            
-            // Pestañas que funcionan con "Todas" O una materia
-            if (subject) { // (No cargar si subject es '')
-                if (currentTab === 'review') loadReviewData(subject);
-                if (currentTab === 'roadmap') loadRoadmapData(subject);
+            // Esta función ya no es necesaria, la lógica se movió a changeSubject
+            // para carga proactiva.
+        }
+        
+        function showLoadingOnTabs(isLoading) {
+            if (isLoading) {
+                els.reviewLoader.classList.remove('hidden');
+                els.roadmapLoader.classList.remove('hidden');
+                els.topicManagerLoader.classList.remove('hidden');
+                els.choiceLoader.classList.remove('hidden');
+            } else {
+                els.reviewLoader.classList.add('hidden');
+                els.roadmapLoader.classList.add('hidden');
+                els.topicManagerLoader.classList.add('hidden');
+                els.choiceLoader.classList.add('hidden');
             }
         }
         
