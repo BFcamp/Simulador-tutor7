@@ -1732,7 +1732,19 @@
         
         // --- CORRECCIÓN: Función toggleAccordion simplificada y robusta ---
         function toggleAccordion(e) {
-            const btn = e.currentTarget;
+            // *** INICIO DE LA CORRECCIÓN ***
+            // En lugar de e.currentTarget, buscamos el botón .accordion-btn más cercano
+            // al elemento que recibió el click (e.target).
+            // Esto es más robusto, especialmente cuando hay íconos (lucide)
+            // que se renderizan dinámicamente dentro del botón.
+            const btn = e.target.closest('.accordion-btn');
+            
+            // Si no encontramos un botón (p.ej. un click erróneo), no hacemos nada.
+            if (!btn) {
+                 return;
+            }
+            // *** FIN DE LA CORRECCIÓN ***
+
             const content = btn.nextElementSibling;
             if (!content) {
                 console.error("Error: no se encontró .accordion-content después del botón.");
