@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulador Tutor IA - V9 (Carga Corregida)</title>
+    <!-- Título actualizado -->
+    <title>Simulador Tutor IA - V12 (Accordion Fix)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,7 +19,7 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f4f7f6; }
         .loader {
-            border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%;
+            border: 4px solid #f3f3ff; border-top: 4px solid #3498db; border-radius: 50%;
             width: 32px; height: 32px; animation: spin 1s linear infinite; margin: 20px auto;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -82,6 +83,9 @@
         .open { display: block; }
         .accordion-btn .toggle-icon { transition: transform 0.2s; }
         .accordion-btn[aria-expanded="true"] .toggle-icon { transform: rotate(180deg); }
+        /* CORRECCIÓN: Estilo para el ícono (SVG) cuando ya fue renderizado por lucide */
+        .accordion-btn[aria-expanded="true"] .lucide-chevron-down { transform: rotate(180deg); }
+
 
         /* Overdue Disclaimer Style */
         .overdue-disclaimer {
@@ -96,6 +100,14 @@
             font-size: 0.9rem;
             margin-bottom: 16px;
         }
+        
+        /* Botón de eliminar en Admin Temas */
+        .delete-question-btn {
+            background-color: #fee2e2; color: #dc2626; border-radius: 50%;
+            width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; margin-left: 8px;
+        }
+        .delete-question-btn:hover { background-color: #fecaca; }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
@@ -127,7 +139,6 @@
                 <div class="flex flex-col sm:flex-row sm:space-x-2">
                     <select id="subject-selector" class="w-full sm:w-1/2 p-2.5 border border-gray-300 rounded-lg bg-white">
                         <option value="">-- Seleccionar --</option>
-                        <!-- NUEVA OPCIÓN "Ver Todas" -->
                         <option value="all">-- Ver Todas --</option>
                     </select>
                     <input type="text" id="new-subject-name" placeholder="Nueva materia..." class="mt-2 sm:mt-0 w-full sm:w-1/2 p-2.5 border border-gray-300 rounded-lg">
@@ -142,11 +153,10 @@
         <!-- Navegación Tabs -->
         <div class="mb-6 overflow-x-auto">
             <nav class="flex space-x-6 border-b border-gray-300 min-w-max" aria-label="Tabs">
-                <!-- Pestaña "Resumen" ELIMINADA -->
                 <button id="tab-material-btn" class="tab-button active py-4 text-lg font-semibold text-gray-500">Material</button>
                 <button id="tab-choice-btn" class="tab-button py-4 text-lg font-semibold text-gray-500">Modo Choice</button>
                 <button id="tab-simulador-btn" class="tab-button py-4 text-lg font-semibold text-gray-500">Modo Oral</button>
-                <button id="tab-review-btn" class="tab-button py-4 text-lg font-semibold text-gray-500">Repasar</button> <!-- Texto cambiado -->
+                <button id="tab-review-btn" class="tab-button py-4 text-lg font-semibold text-gray-500">Repasar</button>
                 <button id="tab-topics-btn" class="tab-button py-4 text-lg font-semibold text-gray-500">Administrar Temas</button>
                 <button id="tab-roadmap-btn" class="tab-button py-4 text-lg font-semibold text-gray-500">Hoja de Ruta</button>
             </nav>
@@ -185,39 +195,86 @@
                 <div id="save-status" class="text-center mt-2 font-medium"></div>
             </div>
 
-            <!-- TAB: MODO CHOICE -->
+            <!-- TAB: MODO CHOICE (NUEVA ESTRUCTURA) -->
             <div id="tab-choice" class="tab-panel space-y-6">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <!-- Columna Izquierda: Carga y Lista de Temas -->
-                    <div class="lg:col-span-1 space-y-6 border-r border-gray-200 pr-4">
-                        <div>
-                            <h3 class="text-xl font-bold text-gray-800 mb-2">1. Cargar Exámenes</h3>
-                            <p class="text-sm text-gray-500 mb-2">Sube PDFs de choice o pega preguntas.</p>
-                            <div class="flex gap-2 mb-2">
-                                <button class="upload-pdf-btn flex-1 py-2 bg-purple-100 text-purple-700 text-sm font-bold rounded hover:bg-purple-200" data-target="choice-raw">Subir PDF Choice</button>
-                            </div>
-                            <textarea id="choice-raw" rows="4" class="w-full p-2 border border-gray-300 rounded text-sm" placeholder="Pega aquí el texto de los exámenes..."></textarea>
-                            <button id="analyze-choice-btn" class="w-full mt-2 py-2 bg-purple-600 text-white font-bold rounded hover:bg-purple-700 transition-all">
-                                Analizar y Clasificar
-                            </button>
+
+                <!-- 1. Selección de Modo (NUEVO) -->
+                <div id="choice-mode-selection" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div id="btn-load-choice" class="mode-card">
+                        <svg data-lucide="upload-cloud" class="w-12 h-12 text-purple-600 mb-4"></svg>
+                        <h3 class="text-xl font-bold">Cargar o Generar</h3>
+                        <p class="text-gray-500 mt-2">Analizar PDFs o generar preguntas desde tu teoría.</p>
+                    </div>
+                    <div id="btn-practice-choice" class="mode-card">
+                        <svg data-lucide="check-circle-2" class="w-12 h-12 text-green-600 mb-4"></svg>
+                        <h3 class="text-xl font-bold">Practicar Choice</h3>
+                        <p class="text-gray-500 mt-2">Practicar las preguntas clasificadas por tema.</p>
+                    </div>
+                </div>
+
+                <!-- 2. Pantalla Cargar/Generar (NUEVO) -->
+                <div id="choice-load-container" class="hidden space-y-6">
+                    <button id="back-mode-choice-1" class="text-sm text-blue-600 font-bold flex items-center hover:underline">
+                        <svg data-lucide="arrow-left" class="w-4 h-4 mr-1"></svg> Volver a selección
+                    </button>
+                    
+                    <!-- Sección A: Analizar (UI Antigua) -->
+                    <div class="p-6 border rounded-lg bg-gray-50">
+                        <h3 class="text-xl font-bold text-gray-800 mb-2">1. Analizar Exámenes Existentes</h3>
+                        <p class="text-sm text-gray-500 mb-4">Sube PDFs de choice o pega el texto para que la IA lo analice y clasifique.</p>
+                        <div class="flex gap-2 mb-2">
+                            <button class="upload-pdf-btn flex-1 py-2 bg-purple-100 text-purple-700 text-sm font-bold rounded hover:bg-purple-200" data-target="choice-raw">Subir PDF Choice</button>
                         </div>
-                        <div id="choice-loader" class="hidden text-center">
+                        <textarea id="choice-raw" rows="5" class="w-full p-2 border border-gray-300 rounded text-sm" placeholder="Pega aquí el texto de los exámenes..."></textarea>
+                        <button id="analyze-choice-btn" class="w-full mt-2 py-2 bg-purple-600 text-white font-bold rounded hover:bg-purple-700 transition-all">
+                            Analizar y Clasificar
+                        </button>
+                        <div id="analyze-choice-loader" class="hidden text-center mt-2">
                             <div class="loader w-6 h-6 border-2"></div>
                             <p class="text-xs text-gray-500 mt-1" id="choice-loader-text">Analizando...</p>
                         </div>
-                        <div>
-                            <h3 class="text-xl font-bold text-gray-800 mb-4">2. Practicar por Tema</h3>
+                    </div>
+
+                    <!-- Sección B: Generar (NUEVO) -->
+                    <div class="p-6 border rounded-lg bg-gray-50">
+                        <h3 class="text-xl font-bold text-gray-800 mb-2">2. Generar Choice desde Teoría</h3>
+                        <p class="text-sm text-gray-500 mb-4">Crea preguntas nuevas usando el contenido de tu pestaña "Material" (Teoría y Syllabus).</p>
+                        <div class="flex items-center gap-4">
+                            <label for="generate-choice-qty" class="font-semibold text-gray-700">Cantidad a generar:</label>
+                            <select id="generate-choice-qty" class="p-2 border border-gray-300 rounded-lg">
+                                <option value="5">5 Preguntas</option>
+                                <option value="10">10 Preguntas</option>
+                                <option value="20">20 Preguntas</option>
+                            </select>
+                            <button id="generate-choice-btn" class="flex-1 py-2 bg-green-600 text-white font-bold rounded hover:bg-green-700 transition-all">
+                                Generar Preguntas
+                            </button>
+                        </div>
+                        <div id="generate-choice-loader" class="loader hidden"></div>
+                    </div>
+                </div>
+
+                <!-- 3. Pantalla Practicar (UI Antigua) -->
+                <div id="choice-practice-container" class="hidden">
+                    <button id="back-mode-choice-2" class="text-sm text-blue-600 font-bold flex items-center mb-4 hover:underline">
+                        <svg data-lucide="arrow-left" class="w-4 h-4 mr-1"></svg> Volver a selección
+                    </button>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <!-- Columna Izquierda: Lista de Temas -->
+                        <div class="lg:col-span-1 space-y-6 border-r border-gray-200 pr-4">
+                            <h3 class="text-xl font-bold text-gray-800 mb-4">Practicar por Tema</h3>
+                            <div id="choice-loader-practice" class="loader hidden"></div>
                             <div id="choice-topics-list" class="space-y-2 max-h-[400px] overflow-y-auto pr-2">
                                 <p class="text-sm text-gray-400 italic">No hay preguntas analizadas aún.</p>
                             </div>
                         </div>
-                    </div>
-                    <!-- Columna Derecha: Zona de Práctica -->
-                    <div class="lg:col-span-2">
-                        <div id="choice-practice-area" class="h-full flex flex-col justify-center items-center text-center p-8 bg-gray-50 rounded-xl border border-dashed border-gray-300">
-                            <svg data-lucide="check-circle-2" class="w-16 h-16 text-gray-300 mb-4"></svg>
-                            <h3 class="text-xl font-semibold text-gray-600">Zona de Práctica</h3>
-                            <p class="text-gray-500 max-w-md mt-2">Selecciona un tema de la izquierda para comenzar a practicar.</p>
+                        <!-- Columna Derecha: Zona de Práctica -->
+                        <div class="lg:col-span-2">
+                            <div id="choice-practice-area" class="h-full flex flex-col justify-center items-center text-center p-8 bg-gray-50 rounded-xl border border-dashed border-gray-300">
+                                <svg data-lucide="check-circle-2" class="w-16 h-16 text-gray-300 mb-4"></svg>
+                                <h3 class="text-xl font-semibold text-gray-600">Zona de Práctica</h3>
+                                <p class="text-gray-500 max-w-md mt-2">Selecciona un tema de la izquierda para comenzar a practicar.</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -319,13 +376,30 @@
             <button onclick="document.getElementById('error-modal').style.display='none'" class="w-full py-2 bg-gray-200 font-bold rounded hover:bg-gray-300">Cerrar</button>
         </div>
     </div>
+    
+    <!-- NUEVO: Modal de Confirmación para Borrar -->
+    <div id="confirm-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white p-6 rounded-lg max-w-sm w-full shadow-2xl">
+            <h3 id="confirm-title" class="text-yellow-600 font-bold text-lg mb-2">¿Estás seguro?</h3>
+            <p id="confirm-msg" class="text-gray-700 mb-4">Esta acción no se puede deshacer.</p>
+            <div class="flex justify-end gap-3">
+                <button id="confirm-no" class="px-4 py-2 bg-gray-200 font-semibold rounded-lg hover:bg-gray-300">Cancelar</button>
+                <button id="confirm-yes" class="px-4 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700">Sí, Eliminar</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Modal Edición de Flashcard -->
     <div id="edit-qa-modal" class="fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center p-4 z-50">
         <div class="bg-white p-6 rounded-lg max-w-lg w-full shadow-2xl">
-            <h3 class="text-xl font-bold text-gray-800 mb-4">Editar Flashcard</h3>
+            <!-- Título dinámico -->
+            <h3 id="edit-qa-title" class="text-xl font-bold text-gray-800 mb-4">Editar Flashcard</h3>
+            <!-- Campos ocultos -->
             <input type="hidden" id="edit-qa-id">
             <input type="hidden" id="edit-qa-subject">
+            <input type="hidden" id="edit-qa-unit">
+            <input type="hidden" id="edit-qa-topic">
+            
             <div class="space-y-3">
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Pregunta</label>
@@ -401,12 +475,23 @@
             newSubjectInput: document.getElementById('new-subject-name'),
             addSubjectBtn: document.getElementById('add-subject-btn'),
             pdfInput: document.getElementById('hidden-pdf-input'),
-            // Choice
+            // Choice (NUEVA ESTRUCTURA)
+            choiceModeSelection: document.getElementById('choice-mode-selection'),
+            btnLoadChoice: document.getElementById('btn-load-choice'),
+            btnPracticeChoice: document.getElementById('btn-practice-choice'),
+            choiceLoadContainer: document.getElementById('choice-load-container'),
+            choicePracticeContainer: document.getElementById('choice-practice-container'),
+            backModeChoice1: document.getElementById('back-mode-choice-1'),
+            backModeChoice2: document.getElementById('back-mode-choice-2'),
             choiceRaw: document.getElementById('choice-raw'),
             analyzeBtn: document.getElementById('analyze-choice-btn'),
-            choiceLoader: document.getElementById('choice-loader'),
+            analyzeChoiceLoader: document.getElementById('analyze-choice-loader'), // Renombrado
             choiceLoaderText: document.getElementById('choice-loader-text'), 
+            generateChoiceQty: document.getElementById('generate-choice-qty'),
+            generateChoiceBtn: document.getElementById('generate-choice-btn'),
+            generateChoiceLoader: document.getElementById('generate-choice-loader'),
             choiceList: document.getElementById('choice-topics-list'),
+            choiceLoaderPractice: document.getElementById('choice-loader-practice'),
             practiceArea: document.getElementById('choice-practice-area'),
             // Oral
             studyModeBtn: document.getElementById('btn-study-mode'),
@@ -435,6 +520,19 @@
             roadmapPractice: document.getElementById('roadmap-practice-session'),
             // Modales
             editQaModal: document.getElementById('edit-qa-modal'),
+            editQaTitle: document.getElementById('edit-qa-title'),
+            editQaId: document.getElementById('edit-qa-id'),
+            editQaSubject: document.getElementById('edit-qa-subject'),
+            editQaUnit: document.getElementById('edit-qa-unit'),
+            editQaTopic: document.getElementById('edit-qa-topic'),
+            editQaQuestion: document.getElementById('edit-qa-question'),
+            editQaAnswer: document.getElementById('edit-qa-answer'),
+            editQaImage: document.getElementById('edit-qa-image'),
+            // NUEVO: Modal Confirmación
+            confirmModal: document.getElementById('confirm-modal'),
+            confirmMsg: document.getElementById('confirm-msg'),
+            confirmYes: document.getElementById('confirm-yes'),
+            confirmNo: document.getElementById('confirm-no'),
         };
 
         // --- INICIALIZACIÓN ---
@@ -491,8 +589,29 @@
             // Material Saving
             document.getElementById('save-material').onclick = saveMaterial;
 
-            // Choice Mode
+            // --- Choice Mode Listeners (NUEVO) ---
+            els.btnLoadChoice.onclick = () => {
+                els.choiceModeSelection.style.display = 'none';
+                els.choiceLoadContainer.style.display = 'block';
+            };
+            els.btnPracticeChoice.onclick = () => {
+                els.choiceModeSelection.style.display = 'none';
+                els.choicePracticeContainer.style.display = 'block';
+                // Cargar temas si no están ya cargados
+                if (els.choiceList.innerHTML.includes('italic')) {
+                    loadChoiceTopics();
+                }
+            };
+            els.backModeChoice1.onclick = () => {
+                els.choiceModeSelection.style.display = 'grid';
+                els.choiceLoadContainer.style.display = 'none';
+            };
+            els.backModeChoice2.onclick = () => {
+                els.choiceModeSelection.style.display = 'grid';
+                els.choicePracticeContainer.style.display = 'none';
+            };
             els.analyzeBtn.onclick = handleAnalyzeChoice;
+            els.generateChoiceBtn.onclick = handleGenerateChoice; // NUEVO
             
             // Oral Modes
             els.studyModeBtn.onclick = () => { els.modeSelection.classList.add('hidden'); els.studyContainer.classList.remove('hidden'); loadSyllabusBrowser(); };
@@ -508,6 +627,9 @@
             // Modal Edición
             document.getElementById('edit-qa-cancel').onclick = () => els.editQaModal.style.display = 'none';
             document.getElementById('edit-qa-save').onclick = saveEditQa;
+            
+            // NUEVO: Modal Confirmación
+            els.confirmNo.onclick = () => els.confirmModal.style.display = 'none';
         }
 
         // --- FUNCIONES CORE ---
@@ -519,9 +641,10 @@
             document.getElementById(tabId + '-btn').classList.add('active');
             document.getElementById(tabId).classList.add('active');
             
-            // Cargar datos de la pestaña activa
-            // (La lógica de "Todas" vs "Materia" está en changeSubject)
-            loadDataForCurrentTab();
+            // Cargar datos de la pestaña activa si hay materia seleccionada
+            if (currentSubject) {
+                loadDataForCurrentTab(tabId);
+            }
         }
 
         async function loadSubjects() {
@@ -553,7 +676,7 @@
                 await setDoc(doc(db, 'artifacts', firebaseConfig.projectId, 'users', userId, 'subjects', name), { created: serverTimestamp() });
                 await loadSubjects();
                 els.subjectSelect.value = name;
-                await changeSubject(); // CORRECCIÓN: Esperar a que changeSubject cargue todo
+                await changeSubject(); 
             } catch (e) {
                 console.error("Error creating subject: ", e);
                 showError("Error al crear la materia. Revisa la consola.");
@@ -563,18 +686,15 @@
         async function changeSubject() {
             currentSubject = els.subjectSelect.value;
             
-            // Limpiar listeners y UI de la materia anterior
             if (unsubscribeReview) unsubscribeReview();
             if (unsubscribeRoadmap) unsubscribeRoadmap();
             
-            // Limpiar todas las pestañas
             clearAllTabs();
 
-            // Cargar datos basados en la nueva selección
-            // --- CORRECCIÓN DE BUG: Cargar TODOS los datos de la materia al cambiar ---
+            // Cargar datos proactivamente
             if (currentSubject && currentSubject !== 'all') {
                 // Seleccionó una materia específica
-                showLoadingOnTabs(true);
+                showLoadingOnTabs(true, true); // Carga completa
                 try {
                     await Promise.all([
                         loadMaterialFields(),
@@ -587,10 +707,10 @@
                     console.error("Error al cargar datos de la materia:", error);
                     showError("Error al cargar datos de la materia. Revisa la consola.");
                 }
-                showLoadingOnTabs(false);
+                showLoadingOnTabs(false, true);
             } else if (currentSubject === 'all') {
                 // Seleccionó "Ver Todas"
-                showLoadingOnTabs(true);
+                showLoadingOnTabs(true, false); // Carga parcial (solo review/roadmap)
                 try {
                      await Promise.all([
                         loadReviewData('all'),
@@ -599,29 +719,38 @@
                 } catch (error) {
                      console.error("Error al cargar datos globales:", error);
                 }
-                showLoadingOnTabs(false);
+                showLoadingOnTabs(false, false);
             }
-            // --- FIN DE CORRECCIÓN ---
+            // Mostrar la pestaña actual (se llama desde switchTab, así que no es necesario aquí)
+            // loadDataForCurrentTab(currentTab);
         }
         
-        // --- CORRECCIÓN: Función de carga eliminada, lógica movida a changeSubject ---
-        function loadDataForCurrentTab() {
-            // Esta función ya no es necesaria, la lógica se movió a changeSubject
-            // para carga proactiva.
-        }
-        
-        function showLoadingOnTabs(isLoading) {
-            if (isLoading) {
-                els.reviewLoader.classList.remove('hidden');
-                els.roadmapLoader.classList.remove('hidden');
-                els.topicManagerLoader.classList.remove('hidden');
-                els.choiceLoader.classList.remove('hidden');
+        // Cargar datos solo para la pestaña activa (se llama desde switchTab)
+        function loadDataForCurrentTab(tabId) {
+            const subject = currentSubject;
+            if (!subject) return; // No hacer nada si no hay materia
+
+            if (subject === 'all') {
+                if (tabId === 'review') loadReviewData('all');
+                if (tabId === 'roadmap') loadRoadmapData('all');
             } else {
-                els.reviewLoader.classList.add('hidden');
-                els.roadmapLoader.classList.add('hidden');
-                els.topicManagerLoader.classList.add('hidden');
-                els.choiceLoader.classList.add('hidden');
+                if (tabId === 'material') loadMaterialFields();
+                if (tabId === 'choice') loadChoiceTopics();
+                if (tabId === 'topics') loadTopicManager();
+                if (tabId === 'review') loadReviewData(subject);
+                if (tabId === 'roadmap') loadRoadmapData(subject);
             }
+        }
+        
+        function showLoadingOnTabs(isLoading, isFullLoad) {
+            const loaders = [els.reviewLoader, els.roadmapLoader];
+            if (isFullLoad) {
+                loaders.push(els.topicManagerLoader, els.choiceLoaderPractice);
+            }
+            
+            loaders.forEach(loader => {
+                if (loader) loader.style.display = isLoading ? 'block' : 'none';
+            });
         }
         
         function clearAllTabs() {
@@ -632,6 +761,14 @@
             els.roadmapList.innerHTML = '<p class="text-gray-400 text-center py-10">Selecciona una materia (o "Ver Todas").</p>';
             els.topicManagerList.innerHTML = '<p class="text-gray-400 text-center py-10">Selecciona una materia.</p>';
             
+            // Limpiar material
+            loadMaterialFields(true);
+            
+            // Resetear UI de Choice
+            els.choiceModeSelection.style.display = 'grid';
+            els.choiceLoadContainer.style.display = 'none';
+            els.choicePracticeContainer.style.display = 'none';
+
             // Limpiar títulos
             els.reviewTitle.textContent = "Repaso (SRS)";
             els.reviewSubtitle.textContent = "Selecciona una materia o 'Ver Todas'.";
@@ -639,10 +776,8 @@
             els.roadmapSubtitle.textContent = "Selecciona una materia o 'Ver Todas'.";
             
             // Ocultar loaders y disclaimers
-            els.reviewLoader.classList.add('hidden');
+            showLoadingOnTabs(false, true);
             els.reviewOverdue.style.display = 'none';
-            els.roadmapLoader.classList.add('hidden');
-            els.topicManagerLoader.classList.add('hidden');
         }
 
         // --- LÓGICA MATERIAL (PDF & SAVE) ---
@@ -721,7 +856,7 @@
         // --- LÓGICA DE REPASO (GLOBAL O POR MATERIA) ---
 
         async function loadReviewData(subject) {
-            els.reviewLoader.classList.remove('hidden');
+            els.reviewLoader.style.display = 'block';
             els.reviewList.innerHTML = '';
             els.reviewOverdue.style.display = 'none';
 
@@ -750,7 +885,7 @@
                     });
                 }
                 
-                els.reviewLoader.classList.add('hidden');
+                els.reviewLoader.style.display = 'none';
                 els.reviewCount.textContent = allDueCards.length;
 
                 // Disclaimer de Vencidas
@@ -765,7 +900,7 @@
 
             } catch (error) {
                 console.error("Error cargando repasos:", error);
-                els.reviewLoader.classList.add('hidden');
+                els.reviewLoader.style.display = 'none';
                 els.reviewList.innerHTML = '<p class="text-red-500">Error al cargar repasos. Revisa la consola.</p>';
             }
         }
@@ -773,7 +908,7 @@
         // --- LÓGICA DE HOJA DE RUTA (GLOBAL O POR MATERIA) ---
 
         async function loadRoadmapData(subject) {
-            els.roadmapLoader.classList.remove('hidden');
+            els.roadmapLoader.style.display = 'block';
             els.roadmapList.innerHTML = '';
             els.roadmapPractice.innerHTML = '';
             els.roadmapPractice.style.display = 'none';
@@ -802,7 +937,7 @@
                     });
                 }
 
-                els.roadmapLoader.classList.add('hidden');
+                els.roadmapLoader.style.display = 'none';
                 
                 if (allFutureCards.length === 0) {
                     els.roadmapList.innerHTML = '<p class="text-gray-400">No hay repasos futuros.</p>';
@@ -823,7 +958,7 @@
 
             } catch (error) {
                 console.error("Error cargando hoja de ruta:", error);
-                els.roadmapLoader.classList.add('hidden');
+                els.roadmapLoader.style.display = 'none';
                 els.roadmapList.innerHTML = '<p class="text-red-500">Error al cargar la hoja de ruta.</p>';
             }
         }
@@ -831,14 +966,12 @@
         // --- MODO CHOICE (LÓGICA COMPLETA) ---
 
         async function handleAnalyzeChoice() {
-            // ... (Sin cambios, esta función ya depende de `currentSubject`) ...
-// ... (El resto de la función `handleAnalyzeChoice` es idéntica) ...
             const rawText = els.choiceRaw.value;
             if (!rawText.trim()) return showError("No hay texto de examen para analizar.");
             if (!currentSubject || currentSubject === 'all') return showError("Selecciona una materia específica.");
 
             els.analyzeBtn.disabled = true;
-            els.choiceLoader.classList.remove('hidden');
+            els.analyzeChoiceLoader.style.display = 'block';
 
             try {
                 const syllabus = document.getElementById('syllabus').value;
@@ -868,20 +1001,92 @@
 
                 els.choiceRaw.value = '';
                 showError(`¡Éxito! Se clasificaron ${allParsedQuestions.length} preguntas.`, false);
-                loadChoiceTopics();
+                await loadChoiceTopics(); // Recargar temas
+                // Cambiar a la pestaña de práctica
+                els.choiceLoadContainer.style.display = 'none';
+                els.choicePracticeContainer.style.display = 'block';
 
             } catch (err) {
                 console.error(err);
                 showError("Error al analizar: " + err.message);
             } finally {
                 els.analyzeBtn.disabled = false;
-                els.choiceLoader.classList.add('hidden');
+                els.analyzeChoiceLoader.style.display = 'none';
                 els.choiceLoaderText.textContent = "Analizando...";
+            }
+        }
+        
+        // --- NUEVA FUNCIÓN: Generar Choice desde Teoría ---
+        async function handleGenerateChoice() {
+            if (!currentSubject || currentSubject === 'all') return showError("Selecciona una materia específica.");
+            
+            const qty = els.generateChoiceQty.value;
+            els.generateChoiceBtn.disabled = true;
+            els.generateChoiceLoader.style.display = 'block';
+
+            try {
+                const syllabus = document.getElementById('syllabus').value;
+                const theory = document.getElementById('theory').value;
+                
+                if (!syllabus.trim() && !theory.trim()) {
+                    throw new Error("La pestaña 'Material' (Syllabus o Teoría) está vacía. No se puede generar preguntas.");
+                }
+
+                const prompt = `
+                    Basado en el siguiente material de estudio:
+                    --- PLAN DE ESTUDIO ---
+                    ${syllabus.substring(0, 5000)}
+                    --- TEORÍA ---
+                    ${theory.substring(0, 10000)}
+                    
+                    Genera exactamente ${qty} preguntas de opción múltiple (Choice) de alta calidad.
+                    Para CADA pregunta, asigna un 'topic' y 'unit' basándote en el material.
+                    Asegúrate de que las opciones sean 4, la respuesta correcta sea precisa, y la justificación sea clara.
+                    Responde SOLO con un JSON Array: [{ "question": "...", "options": ["A", "B", "C", "D"], "correctAnswer": "Texto opción correcta", "topic": "...", "unit": "...", "justification": "..." }]
+                `;
+                
+                let txt = await callGeminiAPI(prompt, true);
+                const generatedQuestions = parseJsonFromAi(txt);
+
+                const batch = writeBatch(db);
+                generatedQuestions.forEach(q => {
+                    const docRef = doc(collection(db, 'artifacts', firebaseConfig.projectId, 'users', userId, 'subjects', currentSubject, 'saved_mcq'));
+                    batch.set(docRef, {
+                        ...q,
+                        createdAt: serverTimestamp(),
+                        status: 'new'
+                    });
+                });
+                await batch.commit();
+
+                showError(`¡Éxito! Se generaron ${generatedQuestions.length} preguntas nuevas.`, false);
+                await loadChoiceTopics(); // Recargar temas
+                // Cambiar a la pestaña de práctica
+                els.choiceLoadContainer.style.display = 'none';
+                els.choicePracticeContainer.style.display = 'block';
+
+            } catch (err) {
+                console.error(err);
+                showError("Error al generar preguntas: " + err.message);
+            } finally {
+                els.generateChoiceBtn.disabled = false;
+                els.generateChoiceLoader.style.display = 'none';
+            }
+        }
+
+        function parseJsonFromAi(txt) {
+            try {
+                txt = txt.replace(/\\\[/g, '[').replace(/\\\]/g, ']'); // Corregir escapes
+                const jsonMatch = txt.match(/\[\s*\{.*\}\s*\]/s); // Extraer solo el array
+                let jsonToParse = (jsonMatch && jsonMatch[0]) ? jsonMatch[0] : txt;
+                return JSON.parse(jsonToParse);
+            } catch (e) {
+                console.error("Falló el parseo de JSON. Error:", e, "Respuesta original de IA:", txt);
+                throw new Error("La IA devolvió un JSON malformado. Revisa la consola.");
             }
         }
 
         async function callGeminiForChoice(examText, syllabus, theory) {
-            // ... (Sin cambios) ...
             const prompt = `
                 Analiza este texto de examen Choice.
                 Contexto Syllabus: ${syllabus.substring(0, 2000)}...
@@ -891,25 +1096,17 @@
                 Responde SOLO un JSON Array: [{ "question": "...", "options": ["A", "B",...], "correctAnswer": "Texto opción correcta", "topic": "...", "unit": "...", "justification": "..." }]
             `;
             let txt = await callGeminiAPI(prompt, true);
-            
-            try {
-                txt = txt.replace(/\\\[/g, '[').replace(/\\\]/g, ']');
-                const jsonMatch = txt.match(/\[\s*\{.*\}\s*\]/s); 
-                let jsonToParse = (jsonMatch && jsonMatch[0]) ? jsonMatch[0] : txt;
-                return JSON.parse(jsonToParse);
-            } catch (e) {
-                console.error("Falló el parseo de JSON. Error:", e, "Respuesta original de IA:", txt);
-                throw new Error("La IA devolvió un JSON malformado. Revisa la consola.");
-            }
+            return parseJsonFromAi(txt);
         }
 
         async function loadChoiceTopics() {
-            // ... (Sin cambios, esta función ya depende de `currentSubject`) ...
-// ... (El resto de la función `loadChoiceTopics` es idéntica) ...
             if (!currentSubject || currentSubject === 'all') {
                  els.choiceList.innerHTML = '<p class="text-sm text-gray-400 italic">Selecciona una materia para ver sus temas.</p>';
                  return;
             }
+            els.choiceLoaderPractice.style.display = 'block';
+            els.choiceList.innerHTML = '';
+            
             const q = query(collection(db, 'artifacts', firebaseConfig.projectId, 'users', userId, 'subjects', currentSubject, 'saved_mcq'));
             const snap = await getDocs(q);
             cachedMcqs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -923,7 +1120,7 @@
                 if(m.status === 'mastered') topics[topicName].mastered++;
             });
 
-            els.choiceList.innerHTML = '';
+            els.choiceLoaderPractice.style.display = 'none';
             
             if (Object.keys(topics).length === 0) {
                  els.choiceList.innerHTML = '<p class="text-sm text-gray-400 italic">No hay preguntas analizadas aún.</p>';
@@ -949,8 +1146,6 @@
         }
 
         function startPractice(topic) {
-            // ... (Sin cambios) ...
-// ... (El resto de la función `startPractice` es idéntica) ...
             currentPracticeTopic = topic;
             currentPracticeQuestions = cachedMcqs.filter(m => (m.topic || "Sin Clasificar") === topic && m.status !== 'mastered');
             if(currentPracticeQuestions.length === 0) currentPracticeQuestions = cachedMcqs.filter(m => (m.topic || "Sin Clasificar") === topic);
@@ -964,8 +1159,6 @@
         }
 
         function renderQuestion() {
-            // ... (Sin cambios) ...
-// ... (El resto de la función `renderQuestion` es idéntica) ...
             if(currentQuestionIndex >= currentPracticeQuestions.length) {
                 const total = currentPracticeQuestions.length;
                 const score = currentQuizCorrect;
@@ -989,7 +1182,10 @@
                         </div>
                     </div>`;
                 
-                document.getElementById('choice-back').onclick = () => switchTab('choice');
+                document.getElementById('choice-back').onclick = () => {
+                    els.choiceLoadContainer.style.display = 'none';
+                    els.choicePracticeContainer.style.display = 'block';
+                };
                 document.getElementById('choice-retry').onclick = () => startPractice(currentPracticeTopic);
                 if (document.getElementById('choice-review-errors')) {
                     document.getElementById('choice-review-errors').onclick = () => {
@@ -1043,7 +1239,7 @@
             `;
             
             document.getElementById('hint-btn').onclick = () => getHint(q);
-            document.getElementById('anki-plus-btn').onclick = () => createFlashcardManually(q);
+            document.getElementById('anki-plus-btn').onclick = () => createFlashcardManually(q); // MODIFICADO
             document.getElementById('next-q-btn').onclick = () => {
                 currentQuestionIndex++;
                 renderQuestion();
@@ -1054,7 +1250,6 @@
         }
 
         async function getHint(questionData) {
-            // ... (Sin cambios) ...
             const box = document.getElementById('hint-box');
             box.style.display = 'block';
             box.textContent = "Generando pista...";
@@ -1064,8 +1259,6 @@
         }
 
         async function checkAnswer(el, selectedText, qData) {
-            // ... (Sin cambios) ...
-// ... (El resto de la función `checkAnswer` es idéntica) ...
             document.querySelectorAll('.mcq-option').forEach(o => o.style.pointerEvents = 'none');
             const isCorrect = selectedText.trim() === String(qData.correctAnswer).trim();
             
@@ -1085,10 +1278,8 @@
                 
                 if (!isFlashcardCreated) {
                     isFlashcardCreated = true;
-                    await createFlashcardFromWrongAnswer(qData);
-                    const feedback = document.getElementById('flashcard-feedback');
-                    feedback.textContent = '¡Respuesta incorrecta! Se creó una flashcard en "Repasar".';
-                    feedback.style.display = 'block';
+                    // --- MODIFICADO: Abre el editor en lugar de crearla automáticamente ---
+                    await createFlashcardManually(qData, true); // true = es por error
                 }
             }
 
@@ -1101,42 +1292,34 @@
         
         // --- LÓGICA ANKI MEJORADA ---
         
-        async function createFlashcardFromWrongAnswer(qData) {
-            // ... (Sin cambios) ...
-            if (!currentSubject || !qData) return;
-            const flashcard = {
+        // Esta función ya no es necesaria, createFlashcardManually hace todo
+        // async function createFlashcardFromWrongAnswer(qData) { ... }
+        
+        async function createFlashcardManually(qData, isFromError = false) {
+            if (isFlashcardCreated && !isFromError) return; // No permitir crear dos veces
+            isFlashcardCreated = true;
+            
+             const cardData = {
+                id: '', // Vacío para CREAR
+                subject: currentSubject,
                 question: qData.question,
                 answer: `<b>Respuesta Correcta:</b> ${qData.correctAnswer}<br><br><b>Justificación:</b> ${qData.justification || "Sin justificación."}`,
+                imageUrl: '',
                 unit: qData.unit || "Choice",
-                topic: qData.topic || "Sin Clasificar",
-                imageUrl: qData.imageUrl || "",
-                reviewStep: 0,
-                nextReviewDate: serverTimestamp(),
-                createdAt: serverTimestamp()
+                topic: qData.topic || "Sin Clasificar"
             };
-            currentQuizWrongCards.push(flashcard);
-            await addDoc(collection(db, 'artifacts', firebaseConfig.projectId, 'users', userId, 'subjects', currentSubject, 'saved_questions'), flashcard);
-        }
-        
-        async function createFlashcardManually(qData) {
-            // ... (Sin cambios) ...
-            if (!currentSubject || !qData) return;
-            if (isFlashcardCreated) return;
             
-            isFlashcardCreated = true;
-            await createFlashcardFromWrongAnswer(qData);
+            openEditModal(cardData, true); // true = es una nueva tarjeta
+
             const feedback = document.getElementById('flashcard-feedback');
-            feedback.textContent = '¡Flashcard creada! Revísala en "Repasar".';
+            feedback.textContent = isFromError ? '¡Error! Abriendo editor de flashcard para repasar...' : 'Editor de Flashcard abierto...';
             feedback.style.display = 'block';
-            document.getElementById('anki-plus-btn').style.display = 'none';
+            if (!isFromError) document.getElementById('anki-plus-btn').style.display = 'none';
         }
         
         // --- SISTEMA DE REPASO (SRS - ANKI) ---
         
-        // --- FUNCIÓN DE RENDERIZADO DE ANKI (REUTILIZABLE) ---
         function startAnkiSession(cards, container, onFinish) {
-            // ... (Sin cambios) ...
-// ... (El resto de la función `startAnkiSession` es idéntica) ...
             let currentCardIndex = 0;
             const originalCards = [...cards];
 
@@ -1197,7 +1380,6 @@
             renderNextCard();
         }
 
-        // --- MODIFICADO: "Repasar (Hoy)" ahora usa la lógica de agrupación ---
         function renderReviewCards(cards, isGlobal) {
             els.reviewList.innerHTML = '';
             if (cards.length === 0) {
@@ -1205,7 +1387,6 @@
                 return;
             }
             
-            // Agrupar por tema (o por materia si es global)
             const groupKey = isGlobal ? 'subject' : 'topic';
             const groupedCards = cards.reduce((acc, card) => {
                 const name = card[groupKey] || (isGlobal ? "Sin Materia" : "Sin Clasificar");
@@ -1214,7 +1395,6 @@
                 return acc;
             }, {});
             
-            // Renderizar acordeón
             for (const groupName in groupedCards) {
                 const groupCards = groupedCards[groupName];
                 const btn = document.createElement('button');
@@ -1233,18 +1413,12 @@
                 practiceBtn.onclick = (e) => {
                     e.stopPropagation();
                     startAnkiSession(groupCards, content, () => {
-                        // Al terminar, recargar la lista de repasos
                         loadReviewData(currentSubject);
                     });
                 };
                 content.appendChild(practiceBtn);
 
-                btn.onclick = () => {
-                    const isExpanded = btn.getAttribute('aria-expanded') === 'true';
-                    btn.setAttribute('aria-expanded', !isExpanded);
-                    content.classList.toggle('open');
-                    btn.querySelector('.toggle-icon').style.transform = isExpanded ? 'rotate(0deg)' : 'rotate(180deg)';
-                };
+                btn.onclick = (e) => toggleAccordion(e); // MODIFICADO
 
                 els.reviewList.appendChild(btn);
                 els.reviewList.appendChild(content);
@@ -1253,8 +1427,6 @@
         }
 
         async function processSRS(card, rating) {
-            // ... (Sin cambios) ...
-// ... (El resto de la función `processSRS` es idéntica) ...
             let nextDate = new Date();
             let nextStep = card.reviewStep || 0;
             
@@ -1279,38 +1451,56 @@
             });
         }
         
-        // --- MODAL DE EDICIÓN DE FLASHCARD (NUEVO) ---
-        function openEditModal(card) {
-            // ... (Sin cambios) ...
+        // --- MODAL DE EDICIÓN DE FLASHCARD (MODIFICADO) ---
+        function openEditModal(card, isNew = false) {
             if(!card) return;
-            document.getElementById('edit-qa-id').value = card.id;
-            document.getElementById('edit-qa-subject').value = card.subject || currentSubject; 
-            document.getElementById('edit-qa-question').value = card.question || '';
-            document.getElementById('edit-qa-answer').value = card.answer || '';
-            document.getElementById('edit-qa-image').value = card.imageUrl || '';
+            
+            els.editQaTitle.textContent = isNew ? "Crear Nueva Flashcard" : "Editar Flashcard";
+            els.editQaId.value = card.id || ''; // Vacío si es nueva
+            els.editQaSubject.value = card.subject || currentSubject; 
+            els.editQaQuestion.value = card.question || '';
+            els.editQaAnswer.value = card.answer || '';
+            els.editQaImage.value = card.imageUrl || '';
+            els.editQaUnit.value = card.unit || 'General'; // Campos ocultos
+            els.editQaTopic.value = card.topic || 'General'; // Campos ocultos
+            
             els.editQaModal.style.display = 'flex';
         }
         
         async function saveEditQa() {
-            // ... (Sin cambios) ...
-// ... (El resto de la función `saveEditQa` es idéntica) ...
-            const id = document.getElementById('edit-qa-id').value;
-            const subject = document.getElementById('edit-qa-subject').value; 
+            const id = els.editQaId.value;
+            const subject = els.editQaSubject.value; 
             
-            if (!id || !subject) {
-                showError("Error: No se pudo encontrar la tarjeta para guardar. Falta ID o Materia.");
+            if (!subject || subject === 'all') {
+                showError("Error: No se pudo determinar la materia para guardar.");
                 return;
             };
             
+            // Recoger todos los datos del modal
             const data = {
-                question: document.getElementById('edit-qa-question').value,
-                answer: document.getElementById('edit-qa-answer').value,
-                imageUrl: document.getElementById('edit-qa-image').value,
+                question: els.editQaQuestion.value,
+                answer: els.editQaAnswer.value,
+                imageUrl: els.editQaImage.value,
+                unit: els.editQaUnit.value,
+                topic: els.editQaTopic.value,
             };
             
             try {
-                const docRef = doc(db, 'artifacts', firebaseConfig.projectId, 'users', userId, 'subjects', subject, 'saved_questions', id);
-                await updateDoc(docRef, data);
+                if (id) {
+                    // --- EDITAR (Lógica existente) ---
+                    const docRef = doc(db, 'artifacts', firebaseConfig.projectId, 'users', userId, 'subjects', subject, 'saved_questions', id);
+                    await updateDoc(docRef, data);
+                } else {
+                    // --- CREAR (NUEVA Lógica) ---
+                    const collectionRef = collection(db, 'artifacts', firebaseConfig.projectId, 'users', userId, 'subjects', subject, 'saved_questions');
+                    await addDoc(collectionRef, {
+                        ...data,
+                        reviewStep: 0,
+                        nextReviewDate: serverTimestamp(),
+                        createdAt: serverTimestamp()
+                    });
+                }
+                
                 els.editQaModal.style.display = 'none';
                 
                 // Recargar la vista actual para ver los cambios
@@ -1323,8 +1513,12 @@
                     if (currentTab === 'topics') loadTopicManager();
                 }
                 
+                // Resetear el feedback en la pestaña choice
+                const feedback = document.getElementById('flashcard-feedback');
+                if (feedback) feedback.style.display = 'none';
+                
             } catch (e) {
-                console.error("Error al guardar edición:", e);
+                console.error("Error al guardar flashcard:", e);
                 showError("No se pudo guardar la tarjeta.");
             }
         }
@@ -1367,12 +1561,7 @@
                     });
                 };
 
-                btn.onclick = () => {
-                    const isExpanded = btn.getAttribute('aria-expanded') === 'true';
-                    btn.setAttribute('aria-expanded', !isExpanded);
-                    content.classList.toggle('open');
-                    btn.querySelector('.toggle-icon').style.transform = isExpanded ? 'rotate(0deg)' : 'rotate(180deg)';
-                };
+                btn.onclick = (e) => toggleAccordion(e); // MODIFICADO: Usar helper
                 
                 els.roadmapList.appendChild(btn);
                 els.roadmapList.appendChild(content);
@@ -1380,11 +1569,9 @@
             if (typeof lucide !== 'undefined') lucide.createIcons();
         }
         
-        // --- PESTAÑA "ADMINISTRAR TEMAS" (NUEVA LÓGICA) ---
+        // --- PESTAÑA "ADMINISTRAR TEMAS" (MEJORADA) ---
         
         async function loadTopicManager() {
-            // ... (Sin cambios, esta función ya depende de `currentSubject`) ...
-// ... (El resto de la función `loadTopicManager` es idéntica) ...
             if (!currentSubject || currentSubject === 'all') {
                  els.topicManagerList.innerHTML = '<p class="text-gray-400 text-center py-10">Selecciona una materia específica.</p>';
                  return;
@@ -1409,12 +1596,29 @@
                 
                 els.topicManagerLoader.style.display = 'none';
                 
+                // --- NUEVO: Nivel 1 (Global) ---
+                const globalDiv = document.createElement('div');
+                globalDiv.className = 'border rounded-lg mb-2';
+                globalDiv.innerHTML = `
+                    <button class="accordion-btn !bg-blue-50 !border-blue-200">
+                        <span class="font-bold text-blue-700">[+] Ver Todas las Preguntas (${allQuestions.length})</span>
+                        <span class="toggle-icon" data-lucide="chevron-down"></span>
+                    </button>
+                    <div class="accordion-content p-4 space-y-2">
+                        ${allQuestions.map(q => renderQuestionManagerRow(q)).join('')}
+                    </div>
+                `;
+                globalDiv.querySelector('button').onclick = toggleAccordion;
+                els.topicManagerList.appendChild(globalDiv);
+                
+                // --- Nivel 2 (Por Tema) ---
                 const sortedTopics = Object.keys(groupedByTopic).sort();
                 sortedTopics.forEach(topicName => {
                     const topicQuestions = groupedByTopic[topicName];
                     const div = document.createElement('div');
                     div.className = 'border rounded-lg mb-2';
                     div.innerHTML = `
+                        <!-- MODIFICADO: Este botón ahora también es un acordeón -->
                         <button class="accordion-btn !bg-white !border-none !mb-0">
                             <span class="flex items-center gap-2">
                                 <input type="checkbox" class="topic-select-box" data-topic-name="${topicName.replace(/"/g, "'")}">
@@ -1427,48 +1631,41 @@
                             </div>
                         </button>
                         <div class="accordion-content p-4 space-y-2">
-                            ${topicQuestions.map(q => `
-                                <div class="flex items-start gap-2 p-2 border-b">
-                                    <input type="checkbox" class="question-select-box" data-doc-id="${q.id}" data-type="${q.type}">
-                                    <p class="text-sm flex-1">
-                                        <span class="font-semibold ${q.type === 'mcq' ? 'text-purple-700' : 'text-blue-700'}">[${q.type.toUpperCase()}]</span>
-                                        ${q.question}
-                                        ${q.type === 'anki' ? `<button class="edit-qa-inline-btn text-xs text-blue-500 hover:underline" data-id="${q.id}">Editar</button>` : ''}
-                                    </p>
-                                </div>
-                            `).join('')}
+                            ${topicQuestions.map(q => renderQuestionManagerRow(q)).join('')}
                         </div>
                     `;
                     
+                    // --- MODIFICADO: El onclick principal ahora es el toggle ---
                     div.querySelector('.accordion-btn').onclick = (e) => {
                         if (e.target.closest('input') || e.target.closest('.rename-topic-btn')) return;
-                        const btn = e.currentTarget;
-                        const content = btn.nextElementSibling;
-                        const isExpanded = btn.getAttribute('aria-expanded') === 'true';
-                        btn.setAttribute('aria-expanded', !isExpanded);
-                        content.classList.toggle('open');
-                        btn.querySelector('.toggle-icon').style.transform = isExpanded ? 'rotate(0deg)' : 'rotate(180deg)';
+                        toggleAccordion(e); // Usar el helper
                     };
-                    
                     div.querySelector('.rename-topic-btn').onclick = (e) => {
                         e.stopPropagation();
                         renombrarTema(topicName);
                     };
-                    
-                    div.querySelectorAll('.edit-qa-inline-btn').forEach(btn => {
-                        btn.onclick = async (e) => {
-                            e.stopPropagation();
-                            const cardId = e.target.dataset.id;
-                            const card = (await getDoc(doc(db, 'artifacts', firebaseConfig.projectId, 'users', userId, 'subjects', currentSubject, 'saved_questions', cardId))).data();
-                            openEditModal({id: cardId, subject: currentSubject, ...card});
-                        }
-                    });
-                    
                     els.topicManagerList.appendChild(div);
                 });
                 
+                // Listeners para todos los checkboxes y botones de editar/borrar
                 els.topicManagerList.querySelectorAll('input[type="checkbox"]').forEach(box => {
                     box.onchange = updateTopicManagerControls;
+                });
+                els.topicManagerList.querySelectorAll('.edit-qa-inline-btn').forEach(btn => {
+                    btn.onclick = async (e) => {
+                        e.stopPropagation();
+                        const cardId = e.target.dataset.id;
+                        const card = (await getDoc(doc(db, 'artifacts', firebaseConfig.projectId, 'users', userId, 'subjects', currentSubject, 'saved_questions', cardId))).data();
+                        openEditModal({id: cardId, subject: currentSubject, ...card});
+                    }
+                });
+                // NUEVO: Listener para botones de eliminar
+                els.topicManagerList.querySelectorAll('.delete-question-btn').forEach(btn => {
+                    btn.onclick = (e) => {
+                        e.stopPropagation();
+                        const { docId, type } = e.currentTarget.dataset;
+                        handleDeleteQuestion(docId, type);
+                    }
                 });
                 
                 if (typeof lucide !== 'undefined') lucide.createIcons();
@@ -1480,8 +1677,76 @@
             }
         }
         
+        // --- MODIFICADO: renderQuestionManagerRow (con botón borrar) ---
+        function renderQuestionManagerRow(q) {
+             return `
+                <div class="flex items-center gap-2 p-2 border-b">
+                    <input type="checkbox" class="question-select-box" data-doc-id="${q.id}" data-type="${q.type}">
+                    <p class="text-sm flex-1">
+                        <span class="font-semibold ${q.type === 'mcq' ? 'text-purple-700' : 'text-blue-700'}">[${q.type.toUpperCase()}]</span>
+                        ${q.question}
+                        ${q.type === 'anki' ? `<button class="edit-qa-inline-btn text-xs text-blue-500 hover:underline ml-2" data-id="${q.id}">Editar</button>` : ''}
+                    </p>
+                    <!-- NUEVO: Botón de Borrar -->
+                    <button class="delete-question-btn" data-doc-id="${q.id}" data-type="${q.type}">
+                        <svg data-lucide="trash-2" class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                    </button>
+                </div>
+            `;
+        }
+        
+        // --- NUEVO: Función para mostrar modal de confirmación de borrado ---
+        function showConfirmModal(message, onConfirm) {
+            els.confirmMsg.textContent = message;
+            els.confirmModal.style.display = 'flex';
+            
+            // Remover listener anterior y agregar uno nuevo (one-shot)
+            els.confirmYes.replaceWith(els.confirmYes.cloneNode(true));
+            els.confirmYes = document.getElementById('confirm-yes'); // Re-seleccionar
+            
+            els.confirmYes.onclick = () => {
+                onConfirm();
+                els.confirmModal.style.display = 'none';
+            };
+        }
+        
+        // --- NUEVO: Función para manejar el borrado de preguntas ---
+        async function handleDeleteQuestion(docId, type) {
+            if (!currentSubject || !docId || !type) return;
+            
+            const collectionName = type === 'mcq' ? 'saved_mcq' : 'saved_questions';
+            
+            showConfirmModal("¿Estás seguro de que quieres eliminar esta pregunta? Esta acción no se puede deshacer.", async () => {
+                try {
+                    const docRef = doc(db, 'artifacts', firebaseConfig.projectId, 'users', userId, 'subjects', currentSubject, collectionName, docId);
+                    await deleteDoc(docRef);
+                    showError("Pregunta eliminada.", false);
+                    loadTopicManager(); // Recargar la vista
+                    loadChoiceTopics(); // Recargar temas de choice por si acaso
+                } catch (e) {
+                    console.error("Error al eliminar pregunta:", e);
+                    showError("No se pudo eliminar la pregunta.");
+                }
+            });
+        }
+        
+        // --- CORRECCIÓN: Función toggleAccordion robusta ---
+        function toggleAccordion(e) {
+            const btn = e.currentTarget;
+            const content = btn.nextElementSibling;
+            const isExpanded = btn.getAttribute('aria-expanded') === 'true';
+            btn.setAttribute('aria-expanded', !isExpanded);
+            content.classList.toggle('open');
+            
+            // CORRECCIÓN: Ser más robusto con el ícono
+            // Busca el span original O el svg renderizado por lucide
+            const icon = btn.querySelector('.toggle-icon') || btn.querySelector('.lucide-chevron-down') || btn.querySelector('.lucide-chevron-up');
+            if (icon) {
+                icon.style.transform = isExpanded ? 'rotate(0deg)' : 'rotate(180deg)';
+            }
+        }
+        
         function updateTopicManagerControls() {
-            // ... (Sin cambios) ...
             const selectedTopics = els.topicManagerList.querySelectorAll('.topic-select-box:checked').length;
             const selectedQuestions = els.topicManagerList.querySelectorAll('.question-select-box:checked').length;
             
@@ -1490,7 +1755,6 @@
         }
 
         async function renombrarTema(oldTopicName) {
-            // ... (Sin cambios) ...
             const newTopicName = prompt(`Renombrar tema:\n"${oldTopicName}"\n\nNuevo nombre:`);
             if (!newTopicName || newTopicName.trim() === '' || newTopicName === oldTopicName) return;
             
@@ -1499,7 +1763,6 @@
         }
 
         async function mergeSelectedTopics() {
-            // ... (Sin cambios) ...
             const selectedTopics = Array.from(els.topicManagerList.querySelectorAll('.topic-select-box:checked'))
                                        .map(box => box.dataset.topicName);
             if (selectedTopics.length < 2) return;
@@ -1512,7 +1775,6 @@
         }
         
         async function createSubtopicFromSelected() {
-            // ... (Sin cambios) ...
             const selectedQuestions = Array.from(els.topicManagerList.querySelectorAll('.question-select-box:checked'));
             if (selectedQuestions.length === 0) return;
             
@@ -1537,7 +1799,6 @@
         }
 
         async function updateTopicNames(oldNames, newName) {
-            // ... (Sin cambios) ...
             try {
                 const batch = writeBatch(db);
                 
@@ -1560,8 +1821,10 @@
         // --- MODOS ORALES (Estructura de Temas Mejorada) ---
         
         async function loadSyllabusBrowser() {
-            // ... (Sin cambios) ...
-// ... (El resto de la función `loadSyllabusBrowser` es idéntica) ...
+             if (!currentSubject || currentSubject === 'all') {
+                 els.syllabusBrowser.innerHTML = '<p class="text-gray-400 text-center py-10">Selecciona una materia específica.</p>';
+                 return;
+            }
             const container = document.getElementById('syllabus-browser');
             container.innerHTML = `<div class="loader mx-auto"></div><p class="text-center text-gray-500">Analizando Syllabus, Teoría y Choices para crear la estructura...</p>`;
             try {
@@ -1595,27 +1858,16 @@
         }
         
         async function parseSyllabusWithAI(fullMaterial) {
-             // ... (Sin cambios) ...
-// ... (El resto de la función `parseSyllabusWithAI` es idéntica) ...
              const prompt = `
                 Analiza todo el material de estudio (Plan de Estudio, Teoría y Exámenes) y genera una estructura de temas (Unidades y Temas).
                 Material: ${fullMaterial.substring(0, 25000)}...
                 Responde SOLO con un JSON Array: [{ "unit": "Nombre Unidad", "topics": ["Tema 1", "Tema 2", ...] }]
             `;
             let txt = await callGeminiAPI(prompt, true);
-            try {
-                txt = txt.replace(/\\\[/g, '[').replace(/\\\]/g, ']');
-                const jsonMatch = txt.match(/\[\s*\{.*\}\s*\]/s); 
-                let jsonToParse = (jsonMatch && jsonMatch[0]) ? jsonToParse = jsonMatch[0] : txt;
-                return JSON.parse(jsonToParse);
-            } catch(e) {
-                 console.error("Falló el parseo de syllabus con IA:", e, "Respuesta original:", txt);
-                 throw new Error("La IA devolvió una estructura de temas malformada.");
-            }
+            return parseJsonFromAi(txt);
         }
 
         function resetModes() {
-            // ... (Sin cambios) ...
             els.studyContainer.classList.add('hidden');
             els.examContainer.classList.add('hidden');
             els.modeSelection.classList.remove('hidden');
@@ -1623,7 +1875,6 @@
         }
         
         async function generateOralExam() {
-            // ... (Sin cambios) ...
             const out = document.getElementById('exam-output');
             out.innerHTML = "Generando...";
             const prompt = `Genera 3 preguntas de examen oral sobre: ${document.getElementById('syllabus').value.substring(0,1000)}...`;
@@ -1635,8 +1886,6 @@
         const API_KEY = "AIzaSyA1RYWX9v5UFVVGVcI9KKyPXK3BDnIRkqw";
 
         async function callGeminiAPI(prompt, expectJson) {
-            // ... (Sin cambios) ...
-// ... (El resto de la función `callGeminiAPI` es idéntica) ...
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${API_KEY}`;
             const body = {
                 contents: [{ parts: [{ text: prompt }] }],
@@ -1667,7 +1916,6 @@
         }
 
         function showError(msg, isError = true) {
-            // ... (Sin cambios) ...
             const m = document.getElementById('error-modal');
             const t = document.getElementById('error-msg');
             const h = document.getElementById('error-title');
