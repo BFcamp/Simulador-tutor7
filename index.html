@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Título actualizado -->
-    <title>Simulador Tutor IA - V12 (Accordion Fix)</title>
+    <title>Simulador Tutor IA - V15 (Accordion Fix)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1418,7 +1418,11 @@
                 };
                 content.appendChild(practiceBtn);
 
-                btn.onclick = (e) => toggleAccordion(e); // MODIFICADO
+                // btn.onclick = (e) => toggleAccordion(e); // MODIFICADO
+                // --- INICIO CORRECCIÓN 2 ---
+                // Le pasamos el botón y el contenido directamente.
+                btn.onclick = () => toggleAccordion(btn, content); 
+                // --- FIN CORRECCIÓN 2 ---
 
                 els.reviewList.appendChild(btn);
                 els.reviewList.appendChild(content);
@@ -1561,7 +1565,14 @@
                     });
                 };
 
-                btn.onclick = (e) => toggleAccordion(e); // MODIFICADO: Usar helper
+                // btn.onclick = (e) => toggleAccordion(e); // MODIFICADO: Usar helper
+                // --- INICIO CORRECCIÓN 2 ---
+                // Le pasamos el botón y el contenido, y chequeamos clicks internos.
+                btn.onclick = (e) => {
+                    if (e.target.closest('.practice-day-btn')) return;
+                    toggleAccordion(btn, content);
+                };
+                // --- FIN CORRECCIÓN 2 ---
                 
                 els.roadmapList.appendChild(btn);
                 els.roadmapList.appendChild(content);
@@ -1608,7 +1619,12 @@
                         ${allQuestions.map(q => renderQuestionManagerRow(q)).join('')}
                     </div>
                 `;
-                globalDiv.querySelector('button').onclick = toggleAccordion;
+                // globalDiv.querySelector('button').onclick = toggleAccordion; // OLD
+                // --- INICIO CORRECCIÓN 2 ---
+                const globalBtn = globalDiv.querySelector('button');
+                const globalContent = globalDiv.querySelector('.accordion-content');
+                globalBtn.onclick = () => toggleAccordion(globalBtn, globalContent);
+                // --- FIN CORRECCIÓN 2 ---
                 els.topicManagerList.appendChild(globalDiv);
                 
                 // --- Nivel 2 (Por Tema) ---
@@ -1636,10 +1652,18 @@
                     `;
                     
                     // --- MODIFICADO: El onclick principal ahora es el toggle ---
-                    div.querySelector('.accordion-btn').onclick = (e) => {
-                        if (e.target.closest('input') || e.target.closest('.rename-topic-btn')) return;
-                        toggleAccordion(e); // Usar el helper
+                    const topicBtn = div.querySelector('.accordion-btn');
+                    const topicContent = div.querySelector('.accordion-content');
+                    topicBtn.onclick = (e) => {
+                        // if (e.target.closest('input') || e.target.closest('.rename-topic-btn')) return; // OLD - BUGGY
+                        // --- INICIO CORRECCIÓN 3 ---
+                        // Solo evitamos el toggle si se hace click en el botón renombrar.
+                        // El click en el checkbox AHORA SÍ abrirá el acordeón.
+                        if (e.target.closest('.rename-topic-btn')) return;
+                        // --- FIN CORRECCIÓN 3 ---
+                        toggleAccordion(topicBtn, topicContent);
                     };
+                    
                     div.querySelector('.rename-topic-btn').onclick = (e) => {
                         e.stopPropagation();
                         renombrarTema(topicName);
@@ -1731,24 +1755,28 @@
         }
         
         // --- CORRECCIÓN: Función toggleAccordion simplificada y robusta ---
-        function toggleAccordion(e) {
-            // *** INICIO DE LA CORRECCIÓN ***
-            // En lugar de e.currentTarget, buscamos el botón .accordion-btn más cercano
-            // al elemento que recibió el click (e.target).
-            // Esto es más robusto, especialmente cuando hay íconos (lucide)
-            // que se renderizan dinámicamente dentro del botón.
-            const btn = e.target.closest('.accordion-btn');
+        // function toggleAccordion(e) { // OLD
+            // const btn = e.target.closest('.accordion-btn');
+            // if (!btn) {
+            //      return;
+            // }
+            // const content = btn.nextElementSibling;
+            // if (!content) {
+            //     console.error("Error: no se encontró .accordion-content después del botón.");
+            //     return; 
+            // }
             
-            // Si no encontramos un botón (p.ej. un click erróneo), no hacemos nada.
-            if (!btn) {
-                 return;
-            }
-            // *** FIN DE LA CORRECCIÓN ***
-
-            const content = btn.nextElementSibling;
-            if (!content) {
-                console.error("Error: no se encontró .accordion-content después del botón.");
-                return; 
+            // const isExpanded = btn.getAttribute('aria-expanded') === 'true';
+            // btn.setAttribute('aria-expanded', String(!isExpanded));
+            // content.classList.toggle('open');
+        // }
+        
+        // --- INICIO CORRECCIÓN 2 ---
+        // La función ahora recibe el botón y el contenido directamente.
+        function toggleAccordion(btn, content) {
+            if (!btn || !content) {
+                console.error("toggleAccordion: Botón o contenido no válido.");
+                return;
             }
             
             const isExpanded = btn.getAttribute('aria-expanded') === 'true';
@@ -1756,9 +1784,8 @@
             content.classList.toggle('open');
             
             // La rotación del ícono se maneja 100% por CSS
-            // (Ver el estilo .accordion-btn[aria-expanded="true"] .toggle-icon)
-            // Y el estilo .accordion-btn[aria-expanded="true"] .lucide-chevron-down
         }
+        // --- FIN CORRECCIÓN 2 ---
         
         function updateTopicManagerControls() {
             const selectedTopics = els.topicManagerList.querySelectorAll('.topic-select-box:checked').length;
