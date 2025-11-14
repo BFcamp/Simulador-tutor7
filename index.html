@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Título actualizado -->
-    <title>Simulador Tutor IA - V15 (Accordion Fix)</title>
+    <title>Simulador Tutor IA - V16 (Accordion Fix)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -108,6 +108,153 @@
             flex-shrink: 0; margin-left: 8px;
         }
         .delete-question-btn:hover { background-color: #fecaca; }
+
+        /* --- INICIO: Estilos para "Modo Estudio" (Traídos de V6) --- */
+        
+        /* Estilos para el Navegador de Temas (Modo Estudio) */
+        .syllabus-browser .unit-toggle-btn {
+            font-size: 1.25rem; /* text-xl */
+            font-weight: 600; /* font-semibold */
+            color: #1f2937; /* gray-800 */
+            margin-bottom: 8px;
+            border-bottom-width: 1px;
+        }
+        .syllabus-browser .unit-topics-container {
+            border-left: 2px solid #e5e7eb; /* gray-200 */
+        }
+        .syllabus-topic-btn {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 12px 16px;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #374151; /* gray-700 */
+            border-radius: 8px;
+            transition: background-color 0.2s;
+            cursor: pointer;
+        }
+        .syllabus-topic-btn:hover {
+            background-color: #f4f7f6; /* nuestro bg-body */
+        }
+        .syllabus-topic-btn:not(:last-child) {
+            margin-bottom: 4px;
+        }
+        
+        /* Estilos para la Guía de Estudio (Modo Estudio) */
+        .guide-summary {
+            font-size: 1.125rem; /* text-lg */
+            color: #374151; /* gray-700 */
+            background-color: #f9fafb; /* gray-50 */
+            padding: 16px;
+            border-radius: 8px;
+            border-left: 4px solid #2563eb; /* blue-600 */
+            margin-bottom: 24px;
+        }
+        .subtopic-block {
+            background-color: white;
+            border: 1px solid #e5e7eb; /* gray-200 */
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .subtopic-header {
+            padding: 16px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .subtopic-header h4 {
+            font-size: 1.25rem; /* text-xl */
+            font-weight: 600; /* font-semibold */
+            color: #111827; /* gray-900 */
+        }
+        .importance-badge {
+            padding: 4px 10px;
+            border-radius: 9999px;
+            font-size: 0.75rem; /* text-xs */
+            font-weight: 700; /* font-bold */
+            text-transform: uppercase;
+        }
+        .importance-badge-alta { background-color: #fee2e2; color: #b91c1c; } /* red */
+        .importance-badge-media { background-color: #fef3c7; color: #b45309; } /* amber */
+        .importance-badge-baja { background-color: #dbeafe; color: #1e40af; } /* blue */
+        
+        .subtopic-body {
+            padding: 16px;
+        }
+        .ai-justification {
+            font-size: 0.875rem; /* text-sm */
+            color: #4b5563; /* gray-600 */
+            font-style: italic;
+            margin-bottom: 16px;
+        }
+        /* CSS para el item de pregunta */
+        .question-item {
+            border-top: 1px solid #f3f4f6; /* gray-100 */
+            padding-top: 16px;
+        }
+        .question-item .question-text {
+            font-weight: 600;
+            color: #1f2937;
+        }
+        /* CSS para el loader de sub-pregunta */
+        .sub-question-loader {
+            display: none; /* Oculto por defecto */
+        }
+
+        .generate-more-btn {
+            margin-top: 16px;
+            width: 100%;
+            padding: 10px;
+            font-weight: 500;
+            background-color: #f3f4f6; /* gray-100 */
+            border-top: 1px solid #e5e7eb;
+            color: #1f2937;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 12px;
+            cursor: pointer;
+        }
+        .generate-more-btn:hover {
+            background-color: #e5e7eb; /* gray-200 */
+        }
+        .sub-question-container {
+            padding: 0 16px 16px 16px; /* Padding para preguntas generadas */
+        }
+        /* CSS para el loader de respuesta y audio */
+        .answer-loader {
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #3498db;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-left: 8px;
+        }
+        .answer-text {
+            font-size: 0.9rem;
+            color: #1f2937; /* gray-800 */
+            margin-top: 10px;
+            border-radius: 4px;
+            white-space: pre-wrap; /* Mantiene saltos de línea y espacios */
+            background-color: #f9fafb; /* gray-50 */
+            border: 1px solid #e5e7eb;
+            border-left: 4px solid #2563eb; /* blue-600 */
+            padding: 10px 14px;
+        }
+        .audio-player-container audio {
+            width: 100%;
+            height: 38px;
+            margin-top: 8px;
+        }
+        /* --- FIN: Estilos para "Modo Estudio" --- */
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
@@ -623,6 +770,45 @@
             // Admin Temas Listeners
             els.mergeTopicsBtn.onclick = mergeSelectedTopics;
             els.createSubtopicBtn.onclick = createSubtopicFromSelected;
+
+            // --- INICIO: Listeners para Modo Estudio (de V6) ---
+            els.syllabusBrowser.addEventListener('click', (e) => {
+                // Maneja el toggle del acordeón de Unidad
+                const unitBtn = e.target.closest('.unit-toggle-btn');
+                if (unitBtn) {
+                    const content = unitBtn.nextElementSibling;
+                    // Reutilizamos la función toggleAccordion que ya arreglamos
+                    toggleAccordion(unitBtn, content); 
+                    return; // Evita que se dispare el de tema
+                }
+                
+                // Maneja la selección de un Tema
+                const topicBtn = e.target.closest('.syllabus-topic-btn');
+                if (topicBtn) {
+                    handleStudyTopicSelect(topicBtn);
+                }
+            });
+
+            document.getElementById('study-output').addEventListener('click', (e) => {
+                const answerBtn = e.target.closest('.answer-btn');
+                if (answerBtn) {
+                    handleAnswerClick(answerBtn);
+                    return;
+                }
+                
+                const saveBtn = e.target.closest('.save-btn');
+                if (saveBtn) {
+                    handleSaveClick(saveBtn);
+                    return;
+                }
+
+                const generateMoreBtn = e.target.closest('.generate-more-btn');
+                if (generateMoreBtn) {
+                    handleGenerateMoreQuestions(generateMoreBtn);
+                    return;
+                }
+            });
+            // --- FIN: Listeners para Modo Estudio (de V6) ---
 
             // Modal Edición
             document.getElementById('edit-qa-cancel').onclick = () => els.editQaModal.style.display = 'none';
@@ -1879,19 +2065,30 @@
                 container.innerHTML = '';
                 structuredSyllabus.forEach(unit => {
                     const div = document.createElement('div');
-                    div.innerHTML = `<button class="accordion-btn text-lg">${unit.unit}</button>`;
+                    // --- INICIO: Corrección V15 (basado en V6) ---
+                    // Añadimos la clase 'unit-toggle-btn' para el listener
+                    div.innerHTML = `<button class="accordion-btn text-lg unit-toggle-btn">${unit.unit} <span class="toggle-icon" data-lucide="chevron-down"></span></button>`;
                     const topicsContainer = document.createElement('div');
                     topicsContainer.className = 'accordion-content';
+                    
+                    // Usamos un botón con data-attributes, como en V6, en lugar del alert()
                     topicsContainer.innerHTML = unit.topics.map(t => 
-                        `<div class="p-2 hover:bg-blue-50 cursor-pointer border-b" onclick="alert('Función de estudio guiado para: ${t}')">${t}</div>`
+                        `<button class="syllabus-topic-btn" data-unit="${unit.unit.replace(/"/g, "'")}" data-topic="${t.replace(/"/g, "'")}">${t}</button>`
                     ).join('');
+                    // --- FIN: Corrección V15 (basado en V6) ---
                     div.appendChild(topicsContainer);
                     container.appendChild(div);
                 });
                 
-                container.querySelectorAll('.accordion-btn').forEach(btn => {
-                    btn.onclick = () => btn.nextElementSibling.classList.toggle('open');
-                });
+                // Ya no necesitamos este listener, usamos el global en setupListeners()
+                // container.querySelectorAll('.accordion-btn').forEach(btn => {
+                //    btn.onclick = () => btn.nextElementSibling.classList.toggle('open');
+                // });
+                
+                // --- INICIO: Corrección ---
+                // Nos aseguramos de renderizar los íconos de los acordeones
+                if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+                // --- FIN: Corrección ---
             } catch (e) {
                 console.error("Error al parsear syllabus con IA:", e);
                 container.innerHTML = `<p class="text-red-500">Error al generar la estructura de temas: ${e.message}</p>`;
@@ -1908,11 +2105,532 @@
             return parseJsonFromAi(txt);
         }
 
+        // --- INICIO: Lógica de Modo Estudio (traída de V6) ---
+        
+        /**
+         * Se llama al seleccionar un tema en el Modo Estudio.
+         */
+        async function handleStudyTopicSelect(topicButton) {
+            const topicName = topicButton.dataset.topic;
+            const unitName = topicButton.dataset.unit;
+
+            if (!topicName || !unitName) return;
+            
+            // Ocultar selección y mostrar loader
+            els.syllabusBrowser.style.display = 'none';
+            // Usamos el loader de la pestaña Admin Temas, ya que está disponible
+            els.topicManagerLoader.style.display = 'block'; 
+            const output = document.getElementById('study-output');
+            output.innerHTML = '';
+
+            const materials = {
+                syllabus: document.getElementById('syllabus').value,
+                theory: document.getElementById('theory').value,
+                experiences: document.getElementById('experiences').value
+            };
+            
+            if (!materials.theory && !materials.experiences) {
+                 showError("El 'Modo Estudio' funciona mejor si cargas 'Teoría' y 'Experiencias' en la pestaña Material.");
+            }
+
+            try {
+                const guideData = await generatePrioritizedStudyGuide(topicName, unitName, materials);
+                renderStudyGuide(guideData, unitName);
+            } catch (error) {
+                console.error("Error al generar guía de estudio:", error);
+                showError(`No se pudo generar la guía: ${error.message}`);
+                output.innerHTML = `<p class="text-red-500">Error al generar la guía.</p>`;
+            } finally {
+                els.topicManagerLoader.style.display = 'none'; // Ocultar loader
+            }
+        }
+
+        /**
+         * Llama a la IA para crear la guía de estudio priorizada. (de V6)
+         */
+        async function generatePrioritizedStudyGuide(topicName, unitName, materials) {
+            const systemPrompt = "Eres un Tutor Médico experto. El estudiante quiere estudiar un tema. Analiza su material (Teoría) y las preguntas de examen (Experiencias). Tu misión es crear una Guía de Estudio Priorizada en formato JSON. Identifica 5-7 subtemas clave. Para cada subtema, asigna una Importancia (Alta, Media, Baja) basándote en las Experiencias y la Teoría, justifica tu elección brevemente, y crea una 'pregunta clave' excelente para ese subtema.";
+            
+            const jsonSchema = {
+                type: "OBJECT",
+                properties: {
+                    "topic": { "type": "STRING" },
+                    "ai_summary": { "type": "STRING" },
+                    "subtopics": {
+                        "type": "ARRAY",
+                        "items": {
+                            "type": "OBJECT",
+                            "properties": {
+                                "subtopic_name": { "type": "STRING" },
+                                "importance": { "type": "STRING" },
+                                "justification": { "type": "STRING" },
+                                "key_question": { "type": "STRING" }
+                            },
+                            "required": ["subtopic_name", "importance", "justification", "key_question"]
+                        }
+                    }
+                },
+                "required": ["topic", "ai_summary", "subtopics"]
+            };
+
+            const generationConfig = {
+                responseMimeType: "application/json",
+                responseSchema: jsonSchema
+            };
+
+            const userQuery = `
+                Material del Estudiante:
+                --- PLAN DE ESTUDIO (Contexto) ---
+                ${materials.syllabus || "No proporcionado."}
+                --- TEORÍA / APUNTES ---
+                ${materials.theory || "No proporcionado."}
+                --- EXPERIENCIAS DE EXÁMENES ---
+                ${materials.experiences || "No proporcionado."}
+                --- FIN DEL MATERIAL ---
+
+                Tema a Estudiar: "${topicName}" (de la unidad: "${unitName}")
+
+                Por favor, genera la Guía de Estudio Priorizada en JSON.
+            `;
+            
+            // Usamos la firma completa de callGeminiAPI
+            const resultText = await callGeminiAPI(userQuery, true, systemPrompt, generationConfig); 
+            return JSON.parse(resultText);
+        }
+
+        /**
+         * Renderiza la Guía de Estudio Priorizada en la UI. (de V6)
+         */
+        function renderStudyGuide(guideData, unitName) {
+            const output = document.getElementById('study-output');
+            output.innerHTML = ''; // Limpiar
+            
+            // Título y Resumen
+            const title = document.createElement('h2');
+            title.className = 'text-3xl font-bold text-gray-800 mb-4';
+            title.textContent = `Guía de Estudio: ${guideData.topic}`;
+            
+            const summary = document.createElement('p');
+            summary.className = 'guide-summary';
+            summary.textContent = guideData.ai_summary;
+            
+            output.appendChild(title);
+            output.appendChild(summary);
+
+            // Renderizar cada subtema
+            guideData.subtopics.forEach(subtopic => {
+                const block = document.createElement('div');
+                block.className = 'subtopic-block';
+
+                // Importancia (para el badge)
+                let importanceClass = 'importance-badge-baja'; // Default
+                if (subtopic.importance.toLowerCase().includes('alta')) {
+                    importanceClass = 'importance-badge-alta';
+                } else if (subtopic.importance.toLowerCase().includes('media')) {
+                    importanceClass = 'importance-badge-media';
+                }
+
+                block.innerHTML = `
+                    <div class="subtopic-header">
+                        <h4>${subtopic.subtopic_name}</h4>
+                        <span class="importance-badge ${importanceClass}">${subtopic.importance}</span>
+                    </div>
+                    <div class="subtopic-body">
+                        <p class="ai-justification">${subtopic.justification}</p>
+                        
+                        <div class="key-question-wrapper">
+                            <!-- La pregunta clave se insertará aquí -->
+                        </div>
+                        
+                        <div class="sub-question-container"></div>
+                        <div class="sub-question-loader loader"></div>
+                    </div>
+                    
+                    <button class="generate-more-btn" data-unit="${unitName}" data-topic="${guideData.topic}" data-subtopic="${subtopic.subtopic_name}">
+                        <svg data-lucide="plus" class="w-4 h-4"></svg>
+                        Generar más preguntas de este subtema
+                    </button>
+                `;
+                
+                // Generar y añadir la pregunta clave
+                const keyQuestionWrapper = block.querySelector('.key-question-wrapper');
+                const questionHTML = createQuestionItemHTML(subtopic.key_question, unitName, guideData.topic);
+                keyQuestionWrapper.innerHTML = questionHTML;
+
+                output.appendChild(block);
+            });
+            
+            if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+        }
+
+        /**
+         * Genera más preguntas para un subtema específico. (de V6)
+         */
+        async function handleGenerateMoreQuestions(button) {
+            const unitName = button.dataset.unit;
+            const topicName = button.dataset.topic;
+            const subtopicName = button.dataset.subtopic;
+            const container = button.previousElementSibling.querySelector('.sub-question-container');
+            const loader = button.previousElementSibling.querySelector('.sub-question-loader');
+            
+            if (!unitName || !topicName || !subtopicName || !container || !loader) {
+                console.error("Faltan datos en el botón 'Generar Más'");
+                return;
+            }
+
+            button.disabled = true;
+            loader.style.display = 'block';
+
+            const materials = {
+                syllabus: document.getElementById('syllabus').value,
+                theory: document.getElementById('theory').value,
+                experiences: document.getElementById('experiences').value
+            };
+
+            const systemPrompt = "Eres un Tutor Médico. Genera 3 preguntas de examen oral, cortas y directas, sobre el siguiente subtema. No te repitas. Responde solo con la lista de preguntas, cada una en una nueva línea.";
+            const userQuery = `
+                Material del Estudiante:
+                --- TEORÍA (Contexto) ---
+                ${materials.theory || "No proporcionado."}
+                --- EXPERIENCIAS (Contexto) ---
+                ${materials.experiences || "No proporcionado."}
+                --- FIN DEL MATERIAL ---
+
+                Tema Principal: "${topicName}"
+                Subtema Específico: "${subtopicName}"
+
+                Genera 3 preguntas solo sobre el subtema específico.
+            `;
+
+            try {
+                const resultText = await callGeminiAPI(userQuery, false, systemPrompt); // Adaptar call
+                const newQuestions = resultText.split('\n').filter(q => q.trim().length > 0);
+                
+                newQuestions.forEach(q => {
+                    const questionHTML = createQuestionItemHTML(q, unitName, topicName);
+                    container.insertAdjacentHTML('beforeend', questionHTML);
+                });
+                
+                if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+
+            } catch (error) {
+                console.error("Error generando más preguntas:", error);
+                container.innerHTML += '<p class="text-red-500 text-sm">Error al generar preguntas.</p>';
+            } finally {
+                button.disabled = false;
+                loader.style.display = 'none';
+            }
+        }
+
+        /**
+         * Helper para crear el HTML de un item de pregunta (para Modo Estudio) (de V6)
+         */
+        function createQuestionItemHTML(question, unitName, topicName) {
+            // Este HTML es una réplica del usado en 'renderExamUI' de V6
+            return `
+                <div class="question-item py-4">
+                    <p class="question-text">${question}</p>
+                    <button class="answer-btn mt-3 px-4 py-1.5 bg-blue-500 text-white text-sm font-medium rounded-md hover:bg-blue-600 transition-colors inline-flex items-center" data-question="${question}">
+                        <svg data-lucide="volume-2" class="w-4 h-4 mr-2"></svg>
+                        Responder y Escuchar
+                        <div class="answer-loader" style="display: none;"></div>
+                    </button>
+                    <button class="save-btn mt-3 ml-2 px-4 py-1.5 bg-green-500 text-white text-sm font-medium rounded-md hover:bg-green-600 transition-colors inline-flex items-center" data-question="${question}" data-topic="${topicName}" data-unit="${unitName}" style="display: none;">
+                        <svg data-lucide="save" class="w-4 h-4 mr-2"></svg>
+                        Guardar
+                    </button>
+                    <div class="answer-text" contenteditable="false" style="display: none;"></div>
+                    <div class="audio-player-container"></div>
+                </div>
+            `;
+        }
+
+        /**
+         * Manejador de clic de "Responder y Escuchar" (Unificado) (de V6)
+         */
+        async function handleAnswerClick(button) {
+            const question = button.dataset.question;
+            const container = button.closest('.question-item');
+            if (!container) return; // Seguridad
+            
+            const loader = button.querySelector('.answer-loader');
+            const answerTextEl = container.querySelector('.answer-text');
+            const audioPlayerContainer = container.querySelector('.audio-player-container');
+            const saveButton = container.querySelector('.save-btn'); 
+
+            button.disabled = true;
+            if (loader) loader.style.display = 'inline-block';
+            if (answerTextEl) {
+                answerTextEl.style.display = 'none';
+                answerTextEl.innerHTML = 'Generando respuesta...';
+            }
+            if (audioPlayerContainer) audioPlayerContainer.innerHTML = '';
+            if (saveButton) saveButton.style.display = 'none'; 
+
+            try {
+                const materials = {
+                    syllabus: document.getElementById('syllabus').value,
+                    theory: document.getElementById('theory').value,
+                    experiences: document.getElementById('experiences').value
+                };
+                
+                if (answerTextEl) answerTextEl.style.display = 'block';
+                const answerText = await getAnswerForQuestion(question, materials);
+                
+                if (answerTextEl) {
+                    answerTextEl.innerHTML = convertMarkdownToHTML(answerText);
+                    answerTextEl.contentEditable = true;
+                    answerTextEl.innerHTML += "\n\nGenerando audio...";
+                }
+
+                // Quitar Markdown/HTML para el audio
+                const cleanAnswerForTTS = answerText.replace(/\*\*(.*?)\*\*/g, '$1'); 
+                const { audioData, mimeType } = await callGeminiTTS(cleanAnswerForTTS);
+                
+                if (answerTextEl) answerTextEl.innerHTML = convertMarkdownToHTML(answerText); // Restaurar texto limpio con HTML
+                if (audioPlayerContainer) await playAudio(audioData, mimeType, audioPlayerContainer);
+
+                if (saveButton) {
+                    saveButton.style.display = 'inline-flex'; 
+                    saveButton.disabled = false;
+                    // El icono de V6 era 'save' (lucide)
+                    saveButton.innerHTML = `<svg data-lucide="save" class="w-4 h-4 mr-2"></svg>Guardar`;
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
+                }
+
+            } catch (error) {
+                console.error("Error en handleAnswerClick:", error);
+                if (answerTextEl) {
+                    answerTextEl.innerHTML = `Error: ${error.message}`; 
+                    answerTextEl.style.display = 'block';
+                }
+            } finally {
+                button.disabled = false;
+                if (loader) loader.style.display = 'none';
+            }
+        }
+
+        /**
+         * Manejador de clic de "Guardar" (Unificado) (de V6)
+         */
+        async function handleSaveClick(button) {
+            const topic = button.dataset.topic;
+            const question = button.dataset.question;
+            const unit = button.dataset.unit;
+            
+            const container = button.closest('.question-item');
+            if (!container) return;
+            
+            const answerTextEl = container.querySelector('.answer-text');
+            const answer = answerTextEl.innerHTML; // Ya está en HTML (con <b>)
+
+            if (!currentSubject) {
+                showError("Por favor, selecciona una materia antes de guardar.");
+                return;
+            }
+
+            if (!topic || !question || !answer || !unit) {
+                showError("Error: no se pudo obtener la información para guardar (faltan datos).");
+                return;
+            }
+
+            button.disabled = true;
+            button.innerHTML = "Guardando...";
+
+            try {
+                // V15 usa 'saved_questions' para las tarjetas Anki. Usaré esa.
+                const savedQuestionsRef = collection(db, 'artifacts', firebaseConfig.projectId, 'users', userId, 'subjects', currentSubject, 'saved_questions');
+                
+                await addDoc(savedQuestionsRef, {
+                    unit: unit, 
+                    topic: topic,
+                    question: question,
+                    answer: answer, // Se guarda la respuesta HTML
+                    createdAt: serverTimestamp(),
+                    reviewStep: 0,
+                    nextReviewDate: serverTimestamp() // Vence "ahora" para estar en "Repasar"
+                });
+
+                button.innerHTML = "¡Guardado!";
+                if (answerTextEl) answerTextEl.contentEditable = false; // Bloquear edición
+                
+                // Recargar pestañas relevantes
+                if (currentTab === 'review') loadReviewData(currentSubject);
+                if (currentTab === 'topics') loadTopicManager();
+                if (currentTab === 'roadmap') loadRoadmapData(currentSubject);
+
+            } catch (error) {
+                console.error("Error al guardar Q&A:", error);
+                showError(`No se pudo guardar la pregunta: ${error.message}`);
+                button.disabled = false;
+                button.innerHTML = "Reintentar Guardar";
+            }
+        }
+
+        /**
+         * Helper para obtener respuesta de IA (de V6)
+         */
+        async function getAnswerForQuestion(question, materials) {
+            const systemPrompt = "Eres un profesor experto. Responde la siguiente pregunta de examen de forma concisa y directa, basándote en el material de estudio proporcionado. La respuesta debe ser ideal para un examen oral. IMPORTANTE: Para resaltar texto clave, usa el formato Markdown `**texto en negrita**`. No utilices ningún otro formato.";
+            const userQuery = `
+                Material de Estudio (Contexto):
+                --- PLAN DE ESTUDIO ---
+                ${materials.syllabus || "No proporcionado."}
+                --- TEORÍA Y CASOS CLÍNICOS ---
+                ${materials.theory || "No proporcionado."}
+                --- EXPERIENCIAS PASADAS ---
+                ${materials.experiences || "No proporcionado."}
+                --- FIN DEL MATERIAL ---
+
+                Pregunta a responder:
+                "${question}"
+
+                Por favor, genera una respuesta clara y concisa para esta pregunta.
+            `;
+            try {
+                // Usar la nueva firma de callGeminiAPI
+                const answer = await callGeminiAPI(userQuery, false, systemPrompt);
+                return answer;
+            } catch (error) {
+                console.error("Error en getAnswerForQuestion:", error);
+                throw error; // Re-lanzar el error para que handleAnswerClick lo atrape
+            }
+        }
+
+        /**
+         * Helper para convertir Markdown (de V6)
+         */
+        function convertMarkdownToHTML(text) {
+            if (!text) return "";
+            // Negrita: **texto** -> <b>texto</b>
+            let html = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+            // Quitar saltos de línea al inicio/fin (común en IA)
+            html = html.trim();
+            // Reemplazar saltos de línea con <br>
+            html = html.replace(/\n/g, '<br>');
+            return html;
+        }
+
+        // --- INICIO: Funciones TTS (traídas de V6) ---
+
+        async function callGeminiTTS(textToSpeak) {
+            // const apiKey = "AIzaSyA1RYWX9v5UFVVGVcI9KKyPXK3BDnIRkqw"; // Ya está definida globalmente
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${API_KEY}`;
+
+            const payload = {
+                contents: [{
+                    parts: [{ text: `Di con tono claro e informativo: ${textToSpeak}` }]
+                }],
+                generationConfig: {
+                    responseModalities: ["AUDIO"],
+                    speechConfig: {
+                        voiceConfig: {
+                            prebuiltVoiceConfig: { voiceName: "Kore" } 
+                        }
+                    }
+                },
+                model: "gemini-2.5-flash-preview-tts"
+            };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorBody = await response.text();
+                    throw new Error(`Error en API TTS (${response.status}): ${errorBody}`);
+                }
+
+                const result = await response.json();
+                const part = result?.candidates?.[0]?.content?.parts?.[0];
+                const audioData = part?.inlineData?.data;
+                const mimeType = part?.inlineData?.mimeType;
+
+                if (audioData && mimeType && mimeType.startsWith("audio/")) {
+                    return { audioData, mimeType };
+                } else {
+                    throw new Error("Respuesta de audio TTS inválida o no encontrada.");
+                }
+            } catch (error) {
+                console.error("Error en callGeminiTTS:", error);
+                throw error;
+            }
+        }
+        function base64ToArrayBuffer(base64) {
+            const binaryString = atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+        function writeString(view, offset, string) {
+            for (let i = 0; i < string.length; i++) {
+                view.setUint8(offset + i, string.charCodeAt(i));
+            }
+        }
+        function pcmToWav(pcmData, sampleRate) {
+            const buffer = new ArrayBuffer(44 + pcmData.byteLength);
+            const view = new DataView(buffer);
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, 36 + pcmData.byteLength, true);
+            writeString(view, 8, 'WAVE');
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, 1, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * 2, true);
+            view.setUint16(32, 2, true);
+            view.setUint16(34, 16, true);
+            writeString(view, 36, 'data');
+            view.setUint32(40, pcmData.byteLength, true);
+            const pcm16 = new Int16Array(pcmData);
+            for (let i = 0; i < pcm16.length; i++) {
+                view.setInt16(44 + i * 2, pcm16[i], true);
+            }
+            return new Blob([view], { type: 'audio/wav' });
+        }
+        async function playAudio(audioData, mimeType, playerContainer) {
+            try {
+                const rateMatch = mimeType.match(/rate=(\d+)/);
+                const sampleRate = rateMatch ? parseInt(rateMatch[1], 10) : 24000;
+                const pcmData = base64ToArrayBuffer(audioData);
+                const pcm16 = new Int16Array(pcmData);
+                const wavBlob = pcmToWav(pcm16, sampleRate);
+                const audioUrl = URL.createObjectURL(wavBlob);
+                playerContainer.innerHTML = '';
+                const audio = document.createElement('audio');
+                audio.src = audioUrl;
+                audio.controls = true;
+                playerContainer.appendChild(audio);
+                audio.play();
+            } catch (error) {
+                console.error("Error al reproducir audio:", error);
+                playerContainer.textContent = "Error al procesar audio.";
+            }
+        }
+
+        // --- FIN: Funciones TTS (traídas de V6) ---
+
+        // --- FIN: Lógica de Modo Estudio (traída de V6) ---
+
+
         function resetModes() {
             els.studyContainer.classList.add('hidden');
             els.examContainer.classList.add('hidden');
             els.modeSelection.classList.remove('hidden');
             els.syllabusBrowser.innerHTML = '<p class="text-gray-400">Cargando...</p>';
+            // --- INICIO: Corrección ---
+            // Limpiar la guía de estudio al volver
+            document.getElementById('study-output').innerHTML = '';
+            // Mostrar el selector de temas de nuevo
+            els.syllabusBrowser.style.display = 'block';
+            // --- FIN: Corrección ---
         }
         
         async function generateOralExam() {
@@ -1926,16 +2644,38 @@
         // --- UTILS ---
         const API_KEY = "AIzaSyA1RYWX9v5UFVVGVcI9KKyPXK3BDnIRkqw";
 
-        async function callGeminiAPI(prompt, expectJson) {
+        // async function callGeminiAPI(prompt, expectJson) { // --- ESTA ES LA FUNCIÓN V15 INCORRECTA
+        //     const url = `https...`;
+        //     ...
+        // }
+        
+        // --- INICIO: Reemplazo de callGeminiAPI con la versión de V6 ---
+        async function callGeminiAPI(userQuery, expectJson, systemPrompt = null, generationConfig = null) {
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${API_KEY}`;
-            const body = {
-                contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: expectJson ? { responseMimeType: "application/json" } : undefined
+            
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
             };
+
+            if (systemPrompt) {
+                payload.systemInstruction = {
+                    parts: [{ text: systemPrompt }]
+                };
+            }
+            
+            let finalGenConfig = generationConfig || {};
+            if (expectJson && !finalGenConfig.responseMimeType) {
+                 finalGenConfig.responseMimeType = "application/json";
+            }
+            
+            if (Object.keys(finalGenConfig).length > 0) {
+                payload.generationConfig = finalGenConfig;
+            }
+
             let retries = 3;
             while (retries > 0) {
                 try {
-                    const resp = await fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body) });
+                    const resp = await fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
                     if (!resp.ok) {
                         const errorBody = await resp.text();
                         console.error("Error API:", errorBody);
@@ -1951,10 +2691,11 @@
                     console.error("Error en callGeminiAPI (intento restante " + (retries-1) + "):", error);
                     retries--;
                     if (retries === 0) throw error;
-                    await new Promise(res => setTimeout(res, 1000));
+                    await new Promise(res => setTimeout(res, 1000)); // Backoff
                 }
             }
         }
+        // --- FIN: Reemplazo de callGeminiAPI ---
 
         function showError(msg, isError = true) {
             const m = document.getElementById('error-modal');
